@@ -1,22 +1,29 @@
 package main
 
 import (
-	"fmt"
+	"github.com/igorrnk/ypmetrika/internal/handler"
+	"github.com/igorrnk/ypmetrika/internal/storage"
 	"log"
 	"net/http"
+	"os"
 )
 
-func HelloWorld(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodPost {
-		fmt.Println("POST")
-		fmt.Println(r.RequestURI)
-	}
-
-}
+const (
+	addressServer = "127.0.0.1:8080"
+)
 
 func main() {
-	// маршрутизация запросов обработчику
-	http.HandleFunc("/", HelloWorld)
-	// запуск сервера с адресом localhost, порт 8080
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	logger := log.Default()
+	logger.SetOutput(os.Stdout)
+	log.Println("Server is running.")
+
+	memStorage := new(storage.MemStorage)
+
+	server := &http.Server{
+		Addr: addressServer,
+		Handler: handler.Handler{
+			Rep: memStorage,
+		},
+	}
+	log.Fatal(server.ListenAndServe())
 }
