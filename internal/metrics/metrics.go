@@ -20,14 +20,13 @@ type Metric struct {
 
 type Metrics struct {
 	Metrics     []Metric
-	CountUpdate int64
+	UpdateCount int64
 }
 
 func (ms *Metrics) Fill() (e error) {
 	f, err := os.Open("cmd/agent/metrics.csv")
 	defer func(f *os.File) {
 		e = f.Close()
-		return
 	}(f)
 	if err != nil {
 		return err
@@ -52,7 +51,7 @@ func (ms *Metrics) Fill() (e error) {
 }
 
 func (ms *Metrics) Update() error {
-	ms.CountUpdate++
+	ms.UpdateCount++
 	stats := runtime.MemStats{}
 	runtime.ReadMemStats(&stats)
 	s := reflect.ValueOf(stats)
@@ -62,7 +61,7 @@ func (ms *Metrics) Update() error {
 		case "runtime":
 			ms.Metrics[i].Value = fmt.Sprint(s.FieldByName(metric.Name))
 		case "counter":
-			ms.Metrics[i].Value = fmt.Sprint(ms.CountUpdate)
+			ms.Metrics[i].Value = fmt.Sprint(ms.UpdateCount)
 		case "random":
 			ms.Metrics[i].Value = fmt.Sprint(fmt.Sprint(rand.Int63()))
 		}

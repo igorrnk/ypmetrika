@@ -12,7 +12,7 @@ func TestMetrics_Fill(t *testing.T) {
 		t.Log(err)
 	}
 	t.Logf("Metrics: %v", len(ms.Metrics))
-	t.Logf("ms.count: %v", ms.CountUpdate)
+	t.Logf("ms.count: %v", ms.UpdateCount)
 }
 
 func TestMetrics_Update(t *testing.T) {
@@ -43,7 +43,7 @@ func TestMetric_URLtoMetric(t *testing.T) {
 		wantFields fields
 	}{
 		{
-			name: "Good path#1",
+			name: "Good path #1",
 			args: args{
 				path: "/update/gauge/RandomValue/1727040455672546632",
 			},
@@ -54,6 +54,13 @@ func TestMetric_URLtoMetric(t *testing.T) {
 				Value:  "1727040455672546632",
 				Source: "",
 			},
+		},
+		{
+			name: "Wrong path #1",
+			args: args{
+				path: "/update/gauge/RandomValue/",
+			},
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
@@ -73,6 +80,9 @@ func TestMetric_URLtoMetric(t *testing.T) {
 			err := metric.URLtoMetric(tt.args.path)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("URLtoMetric() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if err != nil {
+				return
 			}
 			if !reflect.DeepEqual(metric, metricWant) {
 				t.Errorf("URLtoMetric() metric = %v, wantErr %v", metric, metricWant)

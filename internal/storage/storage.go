@@ -12,7 +12,7 @@ type Repositories interface {
 
 type MemStorage struct {
 	GaugeMetrics   map[string]float64
-	CounterMetrics map[string][]int64
+	CounterMetrics map[string]int64
 }
 
 func (memStorage *MemStorage) Write(metric *metrics.Metric) error {
@@ -20,7 +20,7 @@ func (memStorage *MemStorage) Write(metric *metrics.Metric) error {
 		memStorage.GaugeMetrics = make(map[string]float64, 1)
 	}
 	if memStorage.CounterMetrics == nil {
-		memStorage.CounterMetrics = make(map[string][]int64, 1)
+		memStorage.CounterMetrics = make(map[string]int64, 1)
 	}
 	var err error
 	switch metric.Type {
@@ -50,9 +50,6 @@ func (memStorage *MemStorage) AddCounterMetric(name string, value string) error 
 	if err != nil {
 		return err
 	}
-	if memStorage.CounterMetrics[name] == nil {
-		memStorage.CounterMetrics[name] = make([]int64, 5)
-	}
-	memStorage.CounterMetrics[name] = append(memStorage.CounterMetrics[name], v)
+	memStorage.CounterMetrics[name] = memStorage.CounterMetrics[name] + v
 	return nil
 }

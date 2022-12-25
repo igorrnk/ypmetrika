@@ -29,6 +29,7 @@ func Report(ms *metrics.Metrics) {
 		}
 		log.Println(resp.Status)
 	}
+	ms.UpdateCount = 0
 	log.Println("All metrics have been receive.")
 }
 
