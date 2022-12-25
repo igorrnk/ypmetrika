@@ -42,7 +42,7 @@ jobs:
           mv $GITHUB_WORKSPACE/.tools/devopstest /usr/local/bin/devopstest
           mv $GITHUB_WORKSPACE/.tools/random /usr/local/bin/random
 
-      - name: Build agent binary
+      - name: Build agents binary
         run: |
           cd cmd/agent
           go build -o agent
