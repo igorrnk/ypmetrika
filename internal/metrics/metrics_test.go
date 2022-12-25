@@ -5,16 +5,6 @@ import (
 	"testing"
 )
 
-func TestMetrics_Update(t *testing.T) {
-	ms := Metrics{}
-	err := ms.FillFromCSV("/config/metrics.csv")
-	if err != nil {
-		t.Log(err)
-	}
-	_ = ms.Update()
-	t.Logf("metric: %v %v\n", ms.Metrics[0].Name, ms.Metrics[0].Value)
-}
-
 func TestMetric_URLtoMetric(t *testing.T) {
 	type fields struct {
 		Name   string
