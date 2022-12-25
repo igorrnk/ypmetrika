@@ -17,11 +17,6 @@ func (h UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Only POST requests are allowed!", http.StatusMethodNotAllowed)
 		return
 	}
-	if r.Header.Get("Content-Type") != "text/plain" {
-		log.Println("Server gets not text/plain content-type.")
-		http.Error(w, "Wrong Content-Type", http.StatusBadRequest)
-		return
-	}
 
 	log.Printf("URL path = %v", r.RequestURI)
 	metric := new(metrics.Metric)

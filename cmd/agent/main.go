@@ -26,6 +26,13 @@ func Report(ms *metrics.Metrics) {
 		resp, err := http.Post(url, "text/plain", nil)
 		if err != nil {
 			log.Println(err)
+			return
+		}
+		err = resp.Body.Close()
+		{
+			if err != nil {
+				log.Println(err)
+			}
 		}
 		log.Println(resp.Status)
 	}
