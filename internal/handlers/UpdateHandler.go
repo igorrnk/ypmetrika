@@ -35,7 +35,7 @@ func (h UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	err = h.Rep.Write(metric)
 	if err != nil {
 		log.Println(err)
-		w.WriteHeader(http.StatusNotFound)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	log.Printf("Metric %v %v = %v has been written.", metric.Name, metric.Type, metric.Value)
