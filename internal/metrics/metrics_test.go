@@ -5,19 +5,9 @@ import (
 	"testing"
 )
 
-func TestMetrics_Fill(t *testing.T) {
-	ms := Metrics{}
-	err := ms.Fill()
-	if err != nil {
-		t.Log(err)
-	}
-	t.Logf("Metrics: %v", len(ms.Metrics))
-	t.Logf("ms.count: %v", ms.UpdateCount)
-}
-
 func TestMetrics_Update(t *testing.T) {
 	ms := Metrics{}
-	err := ms.Fill()
+	err := ms.FillFromCSV("/config/metrics.csv")
 	if err != nil {
 		t.Log(err)
 	}
