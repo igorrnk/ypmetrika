@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"runtime"
 	"strings"
+	"sync"
 )
 
 type Metric struct {
@@ -21,10 +22,11 @@ type Metric struct {
 type Metrics struct {
 	Metrics     []Metric
 	UpdateCount int64
+	Mutex       sync.RWMutex
 }
 
-func (ms *Metrics) Fill() (e error) {
-	f, err := os.Open("cmd/agent/metrics.csv")
+func (ms *Metrics) FillFromCSV(name string) (e error) {
+	f, err := os.Open(name)
 	defer func(f *os.File) {
 		e = f.Close()
 	}(f)
@@ -51,6 +53,8 @@ func (ms *Metrics) Fill() (e error) {
 }
 
 func (ms *Metrics) Update() error {
+	ms.Mutex.Lock()
+	defer ms.Mutex.Unlock()
 	ms.UpdateCount++
 	stats := runtime.MemStats{}
 	runtime.ReadMemStats(&stats)
