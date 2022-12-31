@@ -28,7 +28,9 @@ func NewAgent(config configs.AgentConfig) (*Agent, error) {
 	}
 	newAgent.Scheduler = NewScheduler(config, newAgent.Update, newAgent.Report)
 	newAgent.Repository = storage.NewAgentMemoryStorage()
-	newAgent.Repository.Fill(config.NameCSVFile)
+	if err := newAgent.Repository.Fill(config.NameCSVFile); err != nil {
+		log.Fatal(err)
+	}
 	newAgent.Client = delivery.NewRestyClient(config)
 
 	return newAgent, nil

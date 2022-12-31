@@ -5,11 +5,13 @@ import (
 	"github.com/igorrnk/ypmetrika/internal/models"
 	"log"
 	"strconv"
+	"sync"
 )
 
 type ServerMemoryStorage struct {
 	GaugeMetrics   map[string]float64
 	CounterMetrics map[string]int64
+	Mutex          sync.RWMutex
 }
 
 func NewServerMemoryStorage() *ServerMemoryStorage {
@@ -19,6 +21,8 @@ func NewServerMemoryStorage() *ServerMemoryStorage {
 }
 
 func (memStorage *ServerMemoryStorage) Write(metric models.ServerMetric) error {
+	memStorage.Mutex.Lock()
+	defer memStorage.Mutex.Unlock()
 	var err error
 	switch metric.Type {
 	case "gauge":
@@ -34,6 +38,8 @@ func (memStorage *ServerMemoryStorage) Write(metric models.ServerMetric) error {
 }
 
 func (memStorage *ServerMemoryStorage) Read(metric models.ServerMetric) (models.ServerMetric, bool) {
+	memStorage.Mutex.RLock()
+	defer memStorage.Mutex.RUnlock()
 	switch metric.Type {
 	case "gauge":
 		if value, ok := memStorage.GaugeMetrics[metric.Name]; ok {
@@ -50,6 +56,8 @@ func (memStorage *ServerMemoryStorage) Read(metric models.ServerMetric) (models.
 }
 
 func (memStorage *ServerMemoryStorage) ReadAll() []models.ServerMetric {
+	memStorage.Mutex.RLock()
+	defer memStorage.Mutex.RUnlock()
 	metrics := make([]models.ServerMetric, 0)
 	for key, value := range memStorage.GaugeMetrics {
 		metrics = append(metrics, models.ServerMetric{
