@@ -16,7 +16,6 @@ func TestMemStorage_Write(t *testing.T) {
 	}
 	tests := []struct {
 		name       string
-		fields     fields
 		args       args
 		wantErr    bool
 		wantFields fields
@@ -30,19 +29,19 @@ func TestMemStorage_Write(t *testing.T) {
 					Value: "100",
 				},
 			},
+
 			wantErr: false,
 			wantFields: fields{
 				CounterMetrics: map[string]int64{
-					"TestMetric": int64(100)},
+					"TestMetric": int64(100),
+				},
+				GaugeMetrics: make(map[string]float64),
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			memStorage := &ServerMemoryStorage{
-				GaugeMetrics:   tt.fields.GaugeMetrics,
-				CounterMetrics: tt.fields.CounterMetrics,
-			}
+			memStorage := NewServerMemoryStorage()
 			wantMemStorage := &ServerMemoryStorage{
 				GaugeMetrics:   tt.wantFields.GaugeMetrics,
 				CounterMetrics: tt.wantFields.CounterMetrics,
@@ -54,8 +53,8 @@ func TestMemStorage_Write(t *testing.T) {
 			if err != nil {
 				return
 			}
-			if reflect.DeepEqual(memStorage, wantMemStorage) {
-				t.Errorf("WriteMetric() memStorage = %v, wantMemStorage %v", memStorage, wantMemStorage)
+			if !reflect.DeepEqual(memStorage, wantMemStorage) {
+				t.Errorf("WriteMetric(): memStorage = %v, wantMemStorage %v", memStorage, wantMemStorage)
 			}
 
 		})

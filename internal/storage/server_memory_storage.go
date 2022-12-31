@@ -3,7 +3,6 @@ package storage
 import (
 	"fmt"
 	"github.com/igorrnk/ypmetrika/internal/models"
-	"log"
 	"strconv"
 	"sync"
 )
@@ -33,7 +32,6 @@ func (memStorage *ServerMemoryStorage) Write(metric models.ServerMetric) error {
 	if err != nil {
 		return err
 	}
-	log.Printf("AgentMetric name: %v, type: %v, value: %v is added\n", metric.Name, metric.Type, metric.Value)
 	return nil
 }
 

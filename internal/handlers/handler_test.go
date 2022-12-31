@@ -53,6 +53,7 @@ func TestHandler_UpdateHandleFn(t *testing.T) {
 			// запускаем сервер
 			hf.ServeHTTP(w, request)
 			res := w.Result()
+			res.Body.Close()
 			if res.StatusCode != tt.want.code {
 				t.Errorf("Expected status code %d, got %d", tt.want.code, w.Code)
 			}
