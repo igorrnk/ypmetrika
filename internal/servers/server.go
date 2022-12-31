@@ -53,12 +53,14 @@ func (server *Server) Run() error {
 
 }
 
-func (server *Server) Update(metric models.ServerMetric) {
+func (server *Server) Update(metric models.ServerMetric) error {
 	err := server.Repository.Write(metric)
 	if err != nil {
-		log.Println(err)
+		log.Printf("Metric %v hasn't been updated.", metric.Name)
+		return err
 	}
 	log.Printf("Metric %v has been updated.", metric.Name)
+	return nil
 }
 
 func (server *Server) Value(metric models.ServerMetric) (models.ServerMetric, bool) {

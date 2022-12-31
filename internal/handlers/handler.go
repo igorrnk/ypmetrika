@@ -43,9 +43,16 @@ func (h Handler) UpdateHandleFn(w http.ResponseWriter, r *http.Request) {
 	nameMetric := chi.URLParam(r, "nameMetric")
 	typeMetric := chi.URLParam(r, "typeMetric")
 	valueMetric := chi.URLParam(r, "valueMetric")
+	if typeMetric != "gauge" && typeMetric != "counter" {
+		w.WriteHeader(http.StatusNotImplemented)
+		return
+	}
 	metric := models.ServerMetric{Name: nameMetric, Type: typeMetric, Value: valueMetric}
-	h.Usecase.Update(metric)
-
+	if err := h.Usecase.Update(metric); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
 }
 
 func (h Handler) ValueHandleFn(w http.ResponseWriter, r *http.Request) {

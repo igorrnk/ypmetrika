@@ -38,7 +38,7 @@ func (agent *Agent) Run() error {
 	log.Println("Agent is running.")
 	go agent.Scheduler.Tick()
 
-	stop := make(chan os.Signal)
+	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
 	<-stop
 	agent.Scheduler.Stop()
