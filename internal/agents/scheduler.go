@@ -1,6 +1,7 @@
 package agents
 
 import (
+	"context"
 	"github.com/igorrnk/ypmetrika/configs"
 	"time"
 )
@@ -24,7 +25,7 @@ func NewScheduler(conf configs.AgentConfig, updater func(), reporter func()) *Sc
 	return newScheduler
 }
 
-func (scheduler Scheduler) Tick() {
+func (scheduler Scheduler) Tick(ctx context.Context) {
 	tickerPoll := time.NewTicker(scheduler.UpdateInterval)
 	tickerReport := time.NewTicker(scheduler.ReportInterval)
 
@@ -35,15 +36,11 @@ OuterLoop:
 			go scheduler.Updater()
 		case <-tickerReport.C:
 			go scheduler.Reporter()
-		case <-scheduler.StopChan:
+		case <-ctx.Done():
 			break OuterLoop
 
 		}
 	}
 	tickerPoll.Stop()
 	tickerReport.Stop()
-}
-
-func (scheduler Scheduler) Stop() {
-	scheduler.StopChan <- time.Now()
 }

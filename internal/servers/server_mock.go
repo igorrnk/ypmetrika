@@ -5,21 +5,21 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-type UsecaseMock struct {
+type ServerMock struct {
 	mock.Mock
 }
 
-func (m *UsecaseMock) Update(metric models.Metric) error {
-	args := m.Called(metric)
+func (mock *ServerMock) Update(metric models.Metric) error {
+	args := mock.Called(metric)
 	return args.Error(0)
 }
 
-func (m *UsecaseMock) Value(metric models.Metric) (models.Metric, bool) {
-	args := m.Called(metric)
+func (mock *ServerMock) Value(metric models.Metric) (models.Metric, bool) {
+	args := mock.Called(metric)
 	return args.Get(0).(models.Metric), args.Get(1).(bool)
 
 }
 
-func (m *UsecaseMock) All() []models.Metric {
+func (mock *ServerMock) All() []models.Metric {
 	return nil
 }

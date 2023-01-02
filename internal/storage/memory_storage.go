@@ -10,7 +10,7 @@ type MemoryStorage struct {
 	Mutex   sync.RWMutex
 }
 
-func NewMemoryStorage() *MemoryStorage {
+func New() *MemoryStorage {
 	return &MemoryStorage{
 		Metrics: make(map[string]*models.Metric, 0),
 		Mutex:   sync.RWMutex{},

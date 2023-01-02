@@ -14,9 +14,8 @@ type RestyClient struct {
 }
 
 func NewRestyClient(config configs.AgentConfig) *RestyClient {
-	client := resty.New()
 	return &RestyClient{
-		Client:        client,
+		Client:        resty.New(),
 		AddressServer: config.AddressServer,
 	}
 }

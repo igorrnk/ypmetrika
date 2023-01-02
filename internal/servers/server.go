@@ -24,7 +24,7 @@ type Server struct {
 func NewServer(config configs.ServerConfig) (*Server, error) {
 	newServer := &Server{
 		Config:     configs.InitServerConfig(),
-		Repository: storage.NewMemoryStorage(),
+		Repository: storage.New(),
 	}
 	newServer.Router = chi.NewRouter()
 	h := handlers.NewHandler(config, newServer)

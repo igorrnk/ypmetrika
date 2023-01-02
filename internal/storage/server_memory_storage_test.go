@@ -33,7 +33,7 @@ func TestMemStorage_Write(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			memStorage := NewMemoryStorage()
+			memStorage := New()
 			wantMemStorage := &MemoryStorage{Metrics: map[string]*models.Metric{tt.args.metric.Name: &tt.args.metric}}
 			err := memStorage.Write(tt.args.metric)
 			if (err != nil) != tt.wantErr {

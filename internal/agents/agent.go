@@ -1,6 +1,7 @@
 package agents
 
 import (
+	"context"
 	"github.com/igorrnk/ypmetrika/configs"
 	"github.com/igorrnk/ypmetrika/internal/delivery"
 	"github.com/igorrnk/ypmetrika/internal/models"
@@ -27,7 +28,7 @@ func NewAgent(config configs.AgentConfig) (*Agent, error) {
 		Config: config,
 	}
 	newAgent.Scheduler = NewScheduler(config, newAgent.Update, newAgent.Report)
-	newAgent.Repository = storage.NewMemoryStorage()
+	newAgent.Repository = storage.New()
 	newAgent.Client = delivery.NewRestyClient(config)
 
 	return newAgent, nil
@@ -35,15 +36,15 @@ func NewAgent(config configs.AgentConfig) (*Agent, error) {
 
 func (agent *Agent) Run() error {
 	log.Println("Agent is running.")
-	go agent.Scheduler.Tick()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go agent.Scheduler.Tick(ctx)
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
 	<-stop
-	agent.Scheduler.Stop()
-
 	log.Println("Agent has been stopped.")
-
 	return nil
 }
 
