@@ -11,19 +11,20 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"sort"
 	"time"
 )
 
 type Server struct {
 	Config     configs.ServerConfig
-	Repository storage.ServerRepository
+	Repository models.Repository
 	Router     chi.Router
 }
 
 func NewServer(config configs.ServerConfig) (*Server, error) {
 	newServer := &Server{
 		Config:     configs.InitServerConfig(),
-		Repository: storage.NewServerMemoryStorage(),
+		Repository: storage.NewMemoryStorage(),
 	}
 	newServer.Router = chi.NewRouter()
 	h := handlers.NewHandler(config, newServer)
@@ -40,7 +41,7 @@ func (server *Server) Run() error {
 		Handler: server.Router}
 	go func() {
 		err := s.ListenAndServe()
-		log.Fatal(err)
+		log.Println(err)
 	}()
 
 	stop := make(chan os.Signal, 1)
@@ -53,20 +54,29 @@ func (server *Server) Run() error {
 
 }
 
-func (server *Server) Update(metric models.ServerMetric) error {
+func (server *Server) Update(metric models.Metric) error {
+	if metric.Type == models.Counter {
+		if oldMetric, ok := server.Repository.Read(metric); ok {
+			metric.Value.Counter += oldMetric.Value.Counter
+		}
+	}
 	err := server.Repository.Write(metric)
 	if err != nil {
 		log.Printf("Metric %v hasn't been updated.", metric.Name)
 		return err
 	}
-	log.Printf("Metric %v has been updated.", metric.Name)
+	log.Printf("Metric %v (%v) has been updated %v.", metric.Name, metric.Type, metric.Value)
 	return nil
 }
 
-func (server *Server) Value(metric models.ServerMetric) (models.ServerMetric, bool) {
+func (server *Server) Value(metric models.Metric) (models.Metric, bool) {
 	return server.Repository.Read(metric)
 }
 
-func (server *Server) All() []models.ServerMetric {
-	return server.Repository.ReadAll()
+func (server *Server) GetAll() []models.Metric {
+	metrics, _ := server.Repository.ReadAll()
+	sort.SliceStable(metrics, func(i, j int) bool { return metrics[i].Name < metrics[j].Name })
+	sort.SliceStable(metrics, func(i, j int) bool { return metrics[i].Type < metrics[j].Type })
+
+	return metrics
 }

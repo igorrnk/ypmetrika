@@ -8,11 +8,10 @@ import (
 
 func TestMemStorage_Write(t *testing.T) {
 	type fields struct {
-		GaugeMetrics   map[string]float64
-		CounterMetrics map[string]int64
+		Metrics map[string]models.Metric
 	}
 	type args struct {
-		metric models.ServerMetric
+		metric models.Metric
 	}
 	tests := []struct {
 		name       string
@@ -23,29 +22,19 @@ func TestMemStorage_Write(t *testing.T) {
 		{
 			name: "Good test #1",
 			args: args{
-				metric: models.ServerMetric{
+				metric: models.Metric{
 					Name:  "TestMetric",
-					Type:  "counter",
-					Value: "100",
+					Type:  models.Counter,
+					Value: models.Value{Counter: 1000},
 				},
 			},
-
 			wantErr: false,
-			wantFields: fields{
-				CounterMetrics: map[string]int64{
-					"TestMetric": int64(100),
-				},
-				GaugeMetrics: make(map[string]float64),
-			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			memStorage := NewServerMemoryStorage()
-			wantMemStorage := &ServerMemoryStorage{
-				GaugeMetrics:   tt.wantFields.GaugeMetrics,
-				CounterMetrics: tt.wantFields.CounterMetrics,
-			}
+			memStorage := NewMemoryStorage()
+			wantMemStorage := &MemoryStorage{Metrics: map[string]*models.Metric{tt.args.metric.Name: &tt.args.metric}}
 			err := memStorage.Write(tt.args.metric)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("WriteMetric() error = %v, wantErr %v", err, tt.wantErr)

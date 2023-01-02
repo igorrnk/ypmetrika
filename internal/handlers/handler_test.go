@@ -11,7 +11,7 @@ import (
 func TestHandler_UpdateHandleFn(t *testing.T) {
 	type fields struct {
 		Config  configs.ServerConfig
-		Usecase models.Usecase
+		Usecase models.ServerUsecase
 	}
 	type want struct {
 		code        int

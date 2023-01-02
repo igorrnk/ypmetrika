@@ -10,6 +10,7 @@ import (
 func main() {
 	logger := log.Default()
 	logger.SetOutput(os.Stdout)
+	//logger.SetFlags(log.Lshortfile | log.Ldate | log.Ltime)
 
 	config := configs.InitAgentConfig()
 

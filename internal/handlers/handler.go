@@ -11,58 +11,70 @@ import (
 )
 
 type Handler struct {
-	Config  configs.ServerConfig
-	Usecase models.Usecase
+	Config configs.ServerConfig
+	Server models.ServerUsecase
 }
 
-func NewHandler(config configs.ServerConfig, usecase models.Usecase) *Handler {
+func NewHandler(config configs.ServerConfig, usecase models.ServerUsecase) *Handler {
 	return &Handler{
-		Config:  config,
-		Usecase: usecase,
+		Config: config,
+		Server: usecase,
 	}
 }
 
 func (h Handler) HandleFn(w http.ResponseWriter, r *http.Request) {
-	metrics := h.Usecase.All()
+
 	page := models.Page{
-		Tittle: "All metrics",
+		Tittle: "GetAll metrics",
+		List:   h.Server.GetAll(),
 	}
-	list := ""
-	for _, metric := range metrics {
-		list += fmt.Sprintf(`<li> %v: %v </li>`, metric.Name, metric.Value) + "\n"
-	}
-	page.List = list
 
 	t, _ := template.ParseFiles(h.Config.NameHTMLFile)
-	t.Execute(w, page)
+	err := t.Execute(w, page)
+	if err != nil {
+		log.Println(err)
+	}
+	log.Printf("Request %v has been handled.", r.RequestURI)
 
 }
 
 func (h Handler) UpdateHandleFn(w http.ResponseWriter, r *http.Request) {
-	log.Println("UpdateHandlerFn(): running.")
 	nameMetric := chi.URLParam(r, "nameMetric")
-	typeMetric := chi.URLParam(r, "typeMetric")
-	valueMetric := chi.URLParam(r, "valueMetric")
-	if typeMetric != "gauge" && typeMetric != "counter" {
+	typeMetric, err := models.ToMetricType(chi.URLParam(r, "typeMetric"))
+	if err != nil {
 		w.WriteHeader(http.StatusNotImplemented)
 		return
 	}
-	metric := models.ServerMetric{Name: nameMetric, Type: typeMetric, Value: valueMetric}
-	if err := h.Usecase.Update(metric); err != nil {
+	valueMetric, err := models.ToValue(chi.URLParam(r, "valueMetric"), typeMetric)
+	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	metric := models.Metric{Name: nameMetric, Type: typeMetric, Value: valueMetric}
+	if err = h.Server.Update(metric); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 	w.WriteHeader(http.StatusOK)
+	log.Printf("Request %v has been handled.", r.RequestURI)
 }
 
 func (h Handler) ValueHandleFn(w http.ResponseWriter, r *http.Request) {
 	nameMetric := chi.URLParam(r, "nameMetric")
-	typeMetric := chi.URLParam(r, "typeMetric")
-	metric, ok := h.Usecase.Value(models.ServerMetric{Name: nameMetric, Type: typeMetric})
+	typeMetric, err := models.ToMetricType(chi.URLParam(r, "typeMetric"))
+	if err != nil {
+		w.WriteHeader(http.StatusNotImplemented)
+		return
+	}
+	metric, ok := h.Server.Value(models.Metric{Name: nameMetric, Type: typeMetric})
 	if !ok {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(fmt.Sprintf(metric.Value)))
+	_, err = w.Write([]byte(fmt.Sprint(metric.Value)))
+	if err != nil {
+		log.Println(err)
+	}
+	log.Printf("Request %v has been handled.", r.RequestURI)
 }

@@ -13,7 +13,6 @@ var DefaultAgentConfig AgentConfig = AgentConfig{
 	PollInterval:   1 * time.Second,
 	ReportInterval: 3 * time.Second,
 	AddressServer:  "127.0.0.1:8080",
-	NameCSVFile:    "./configs/metrics.csv",
 }
 
 func InitAgentConfig() AgentConfig {
