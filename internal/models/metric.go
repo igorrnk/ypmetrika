@@ -50,8 +50,12 @@ func (metric *Metric) UnmarshalJSON(bytes []byte) error {
 	if metric.Type, err = ToMetricType(aliasValue.MType); err != nil {
 		return err
 	}
-	metric.Value.Counter = *aliasValue.Delta
-	metric.Value.Gauge = *aliasValue.Value
+	if aliasValue.Delta != nil {
+		metric.Value.Counter = *aliasValue.Delta
+	}
+	if aliasValue.Value != nil {
+		metric.Value.Gauge = *aliasValue.Value
+	}
 	return nil
 }
 
