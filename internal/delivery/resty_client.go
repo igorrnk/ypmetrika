@@ -36,7 +36,7 @@ func (client RestyClient) Post(metric *models.Metric) {
 
 func (client RestyClient) PostJSON(metric *models.Metric) {
 
-	url := fmt.Sprintf("http://%s/update",
+	url := fmt.Sprintf("http://%s/update/",
 		client.AddressServer)
 	body, err := json.Marshal(metric)
 	if err != nil {
@@ -45,7 +45,7 @@ func (client RestyClient) PostJSON(metric *models.Metric) {
 	}
 	resp, err := client.Client.R().
 		SetBody(body).
-		SetHeader("Content-Type", "text/plain").
+		SetHeader("Content-Type", "application/json").
 		Post(url)
 	if err != nil {
 		log.Println(err)
