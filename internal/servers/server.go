@@ -33,8 +33,8 @@ func NewServer(config configs.ServerConfig) (*Server, error) {
 	newServer.Router.Get("/", h.HandleFn)
 	newServer.Router.Get("/value/{typeMetric}/{nameMetric}", h.ValueHandleFn)
 	newServer.Router.Post("/update/{typeMetric}/{nameMetric}/{valueMetric}", h.UpdateHandleFn)
-	newServer.Router.Post("/update", h.UpdateJSONHandleFn)
-	newServer.Router.Post("/value", h.ValueJSONHandleFn)
+	newServer.Router.Post("/update/", h.UpdateJSONHandleFn)
+	newServer.Router.Post("/value/", h.ValueJSONHandleFn)
 
 	return newServer, nil
 }
