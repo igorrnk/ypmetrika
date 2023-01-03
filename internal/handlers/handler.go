@@ -25,7 +25,6 @@ func NewHandler(config configs.ServerConfig, usecase models.ServerUsecase) *Hand
 }
 
 func (h Handler) HandleFn(w http.ResponseWriter, r *http.Request) {
-
 	page := models.Page{
 		Tittle: "GetAll metrics",
 		List:   h.Server.GetAll(),

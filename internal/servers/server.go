@@ -3,6 +3,7 @@ package servers
 import (
 	"context"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/igorrnk/ypmetrika/configs"
 	"github.com/igorrnk/ypmetrika/internal/handlers"
 	"github.com/igorrnk/ypmetrika/internal/models"
@@ -27,6 +28,7 @@ func NewServer(config configs.ServerConfig) (*Server, error) {
 		Repository: storage.New(),
 	}
 	newServer.Router = chi.NewRouter()
+	newServer.Router.Use(middleware.Logger)
 	h := handlers.NewHandler(config, newServer)
 	newServer.Router.Get("/", h.HandleFn)
 	newServer.Router.Get("/value/{typeMetric}/{nameMetric}", h.ValueHandleFn)
@@ -67,7 +69,7 @@ func (server *Server) Update(metric models.Metric) error {
 		log.Printf("Metric %v hasn't been updated.", metric.Name)
 		return err
 	}
-	log.Printf("Metric %v (%v) has been updated %v.", metric.Name, metric.Type, metric.Value)
+	//log.Printf("Metric %v (%v) has been updated %v.", metric.Name, metric.Type, metric.Value)
 	return nil
 }
 
@@ -79,6 +81,5 @@ func (server *Server) GetAll() []models.Metric {
 	metrics, _ := server.Repository.ReadAll()
 	sort.SliceStable(metrics, func(i, j int) bool { return metrics[i].Name < metrics[j].Name })
 	sort.SliceStable(metrics, func(i, j int) bool { return metrics[i].Type < metrics[j].Type })
-
 	return metrics
 }

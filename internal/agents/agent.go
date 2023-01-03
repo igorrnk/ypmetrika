@@ -72,7 +72,7 @@ func (agent *Agent) Update() {
 		if err != nil {
 			log.Println(err)
 		}
-		log.Printf("Metric %v (%v) = %v has been updated.", metric.Name, metric.Type, metric.Value)
+		//log.Printf("Metric %v (%v) = %v has been updated.", metric.Name, metric.Type, metric.Value)
 	}
 	log.Println("Metrics have been updated.")
 }
