@@ -10,8 +10,8 @@ type AgentConfig struct {
 }
 
 var DefaultAgentConfig AgentConfig = AgentConfig{
-	PollInterval:   1 * time.Second,
-	ReportInterval: 3 * time.Second,
+	PollInterval:   2 * time.Second,
+	ReportInterval: 10 * time.Second,
 	AddressServer:  "127.0.0.1:8080",
 }
 
