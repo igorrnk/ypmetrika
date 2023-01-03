@@ -87,6 +87,10 @@ func (h Handler) UpdateJSONHandleFn(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Add("Content-Type", "application/json")
 	data, err := json.Marshal(metric)
+	if err != nil {
+		log.Println(err)
+		return
+	}
 	_, err = w.Write(data)
 	if err != nil {
 		log.Println(err)
@@ -115,6 +119,10 @@ func (h Handler) ValueJSONHandleFn(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Add("Content-Type", "application/json")
 	data, err := json.Marshal(metric)
+	if err != nil {
+		log.Println(err)
+		return
+	}
 	_, err = w.Write(data)
 	if err != nil {
 		log.Println(err)
