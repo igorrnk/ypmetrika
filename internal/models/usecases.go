@@ -8,6 +8,7 @@ type ServerUsecase interface {
 
 type Client interface {
 	Post(*Metric)
+	PostJSON(*Metric)
 }
 
 type Repository interface {

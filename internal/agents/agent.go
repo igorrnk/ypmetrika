@@ -84,7 +84,7 @@ func (agent *Agent) Report() {
 		return
 	}
 	for _, metric := range metrics {
-		agent.Client.Post(&metric)
+		agent.Client.PostJSON(&metric)
 	}
 	agent.UpdateCounter = 0
 	log.Println("Metrics have been posted.")

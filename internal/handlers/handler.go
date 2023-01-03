@@ -1,10 +1,12 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/igorrnk/ypmetrika/configs"
 	"github.com/igorrnk/ypmetrika/internal/models"
+	"io"
 	"log"
 	"net/http"
 	"text/template"
@@ -57,6 +59,66 @@ func (h Handler) UpdateHandleFn(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 	log.Printf("Request %v has been handled.", r.RequestURI)
+}
+
+func (h Handler) UpdateJSONHandleFn(w http.ResponseWriter, r *http.Request) {
+	metric := models.Metric{}
+	var body []byte
+	var err error
+	if body, err = io.ReadAll(r.Body); err != nil {
+		log.Println(err)
+		return
+	}
+	if err = r.Body.Close(); err != nil {
+		log.Println(err)
+	}
+	if err = json.Unmarshal(body, &metric); err != nil {
+		log.Println(err)
+		return
+	}
+	if err = h.Server.Update(metric); err != nil {
+		log.Println(err)
+		return
+	}
+	metric, ok := h.Server.Value(metric)
+	if !ok {
+		log.Println(err)
+		return
+	}
+	w.Header().Add("Content-Type", "application/json")
+	data, err := json.Marshal(metric)
+	_, err = w.Write(data)
+	if err != nil {
+		log.Println(err)
+	}
+}
+
+func (h Handler) ValueJSONHandleFn(w http.ResponseWriter, r *http.Request) {
+	metric := models.Metric{}
+	var body []byte
+	var err error
+	if body, err = io.ReadAll(r.Body); err != nil {
+		log.Println(err)
+		return
+	}
+	if err = r.Body.Close(); err != nil {
+		log.Println(err)
+	}
+	if err = json.Unmarshal(body, &metric); err != nil {
+		log.Println(err)
+		return
+	}
+	metric, ok := h.Server.Value(metric)
+	if !ok {
+		log.Println(err)
+		return
+	}
+	w.Header().Add("Content-Type", "application/json")
+	data, err := json.Marshal(metric)
+	_, err = w.Write(data)
+	if err != nil {
+		log.Println(err)
+	}
 }
 
 func (h Handler) ValueHandleFn(w http.ResponseWriter, r *http.Request) {

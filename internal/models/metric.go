@@ -1,10 +1,14 @@
 package models
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
 )
+
+type Gauge float64
+type Counter int64
 
 type Value struct {
 	Gauge   float64
@@ -22,18 +26,52 @@ func (value Value) String() string {
 }
 
 type Metric struct {
-	Name   string
+	Name   string `json:"id"`
 	Type   MetricType
 	Value  Value
 	Source SourceType
 }
 
+type JSONMetric struct {
+	ID    string   `json:"id"`              // имя метрики
+	MType string   `json:"type"`            // параметр, принимающий значение gauge или counter
+	Delta *int64   `json:"delta,omitempty"` // значение метрики в случае передачи counter
+	Value *float64 `json:"value,omitempty"` // значение метрики в случае передачи gauge
+}
+
+func (metric *Metric) UnmarshalJSON(bytes []byte) error {
+	type MetricAlias Metric
+	aliasValue := JSONMetric{}
+	var err error
+	if err = json.Unmarshal(bytes, &aliasValue); err != nil {
+		return err
+	}
+	metric.Name = aliasValue.ID
+	if metric.Type, err = ToMetricType(aliasValue.MType); err != nil {
+		return err
+	}
+	metric.Value.Counter = *aliasValue.Delta
+	metric.Value.Gauge = *aliasValue.Value
+	return nil
+}
+
+func (metric Metric) MarshalJSON() ([]byte, error) {
+	type MetricAlias Metric
+	aliasValue := JSONMetric{
+		ID:    metric.Name,
+		MType: metric.Type.String(),
+		Delta: &metric.Value.Counter,
+		Value: &metric.Value.Gauge,
+	}
+	return json.Marshal(aliasValue)
+}
+
 func (metric Metric) ValueS() string {
 	var s string
 	switch metric.Type {
-	case Gauge:
+	case GaugeType:
 		s = fmt.Sprint(metric.Value.Gauge)
-	case Counter:
+	case CounterType:
 		s = fmt.Sprint(metric.Value.Counter)
 	}
 	return s
@@ -46,8 +84,8 @@ func (d MetricType) String() string {
 }
 
 const (
-	Gauge MetricType = iota
-	Counter
+	GaugeType MetricType = iota
+	CounterType
 )
 
 type SourceType int
@@ -60,8 +98,8 @@ const (
 
 func ToMetricType(s string) (MetricType, error) {
 	if metricType, ok := map[string]MetricType{
-		"gauge":   Gauge,
-		"counter": Counter,
+		"gauge":   GaugeType,
+		"counter": CounterType,
 	}[s]; ok {
 		return metricType, nil
 	} else {
@@ -71,10 +109,10 @@ func ToMetricType(s string) (MetricType, error) {
 
 func ToValue(s string, metricType MetricType) (Value, error) {
 	switch metricType {
-	case Gauge:
+	case GaugeType:
 		gauge, err := strconv.ParseFloat(s, 64)
 		return Value{Gauge: gauge}, err
-	case Counter:
+	case CounterType:
 		counter, err := strconv.ParseInt(s, 10, 64)
 		return Value{Counter: counter}, err
 	}

@@ -24,7 +24,7 @@ func TestMemStorage_Write(t *testing.T) {
 			args: args{
 				metric: models.Metric{
 					Name:  "TestMetric",
-					Type:  models.Counter,
+					Type:  models.CounterType,
 					Value: models.Value{Counter: 1000},
 				},
 			},
