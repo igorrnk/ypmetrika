@@ -64,8 +64,12 @@ func (metric Metric) MarshalJSON() ([]byte, error) {
 	aliasValue := JSONMetric{
 		ID:    metric.Name,
 		MType: metric.Type.String(),
-		Delta: &metric.Value.Counter,
-		Value: &metric.Value.Gauge,
+	}
+	switch metric.Type {
+	case GaugeType:
+		aliasValue.Value = &metric.Value.Gauge
+	case CounterType:
+		aliasValue.Delta = &metric.Value.Counter
 	}
 	return json.Marshal(aliasValue)
 }

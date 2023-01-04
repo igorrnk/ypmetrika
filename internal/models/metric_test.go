@@ -27,7 +27,7 @@ func TestMetric_UnmarshalJSON(t *testing.T) {
 			name:   "Good Gauge",
 			fields: fields{},
 			args: args{
-				bytes: []byte(`{"id":"Alloc","type":"gauge","delta":0,"value":123456.789}`),
+				bytes: []byte(`{"id":"Alloc","type":"gauge","value":123456.789}`),
 			},
 			wantErr: false,
 			want: Metric{
@@ -41,7 +41,7 @@ func TestMetric_UnmarshalJSON(t *testing.T) {
 			name:   "Good Counter",
 			fields: fields{},
 			args: args{
-				bytes: []byte(`{"id":"PollCount","type":"counter","delta":123,"value":0}`),
+				bytes: []byte(`{"id":"PollCount","type":"counter","delta":123}`),
 			},
 			wantErr: false,
 			want: Metric{
@@ -104,7 +104,7 @@ func TestMetric_MarshalJSON(t *testing.T) {
 				Value:  Value{Gauge: 123456.789},
 				Source: RuntimeSource,
 			},
-			want:    `{"id":"Alloc","type":"gauge","delta":0,"value":123456.789}`,
+			want:    `{"id":"Alloc", "type":"gauge", "value":123456.789}`,
 			wantErr: false,
 		},
 		{
@@ -115,8 +115,8 @@ func TestMetric_MarshalJSON(t *testing.T) {
 				Value:  Value{Counter: 123},
 				Source: RuntimeSource,
 			},
-			want:    `{"id":"Alloc","type":"counter","delta":123,"value":0}`,
-			wantErr: true,
+			want:    `{"id":"Alloc","type":"counter","delta":123}`,
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
