@@ -9,8 +9,9 @@ import (
 
 func main() {
 	logger := log.Default()
-	logger.SetOutput(os.Stdout)
-	//logger.SetFlags(log.Lshortfile | log.Ldate | log.Ltime)
+	logFile, _ := os.OpenFile("./log/agentLog.log", os.O_APPEND|os.O_RDWR|os.O_CREATE, 0777)
+	logger.SetOutput(logFile)
+	logger.SetFlags(log.Lshortfile | log.Ldate | log.Ltime)
 
 	config := configs.InitAgentConfig()
 

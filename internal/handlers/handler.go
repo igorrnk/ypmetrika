@@ -26,6 +26,7 @@ func (h Handler) HandleFn(w http.ResponseWriter, r *http.Request) {
 		List:   h.Server.GetAll(),
 	}
 
+	w.Header().Add("Content-Type", "text/html")
 	t, _ := template.ParseFiles(h.Config.NameHTMLFile)
 	err := t.Execute(w, page)
 	if err != nil {

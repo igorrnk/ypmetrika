@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"bytes"
 	"github.com/go-chi/chi/v5"
 	"github.com/igorrnk/ypmetrika/configs"
 	"github.com/igorrnk/ypmetrika/internal/models"
@@ -14,10 +15,15 @@ import (
 	"testing"
 )
 
-func TestHandler_ValueHandleFn(t *testing.T) {
+func TestHandler_UpdateJSONHandleFn(t *testing.T) {
 	type fields struct {
 		Config configs.ServerConfig
 		Server models.ServerUsecase
+	}
+	type request struct {
+		requestURI  string
+		contentType string
+		body        []byte
 	}
 	type mockArgs struct {
 		arg0 string
@@ -28,66 +34,76 @@ func TestHandler_ValueHandleFn(t *testing.T) {
 	}
 	type want struct {
 		code        int
-		response    string
 		contentType string
+		body        []byte
 	}
 	tests := []struct {
 		name     string
-		request  string
-		mockArgs mockArgs
 		fields   fields
+		request  request
+		mockArgs mockArgs
 		want     want
 	}{
 		{
-			name:    "ValueGaugeAlloc",
-			request: "/value/gauge/Alloc",
+			name: "UpdateJSONGaugeAlloc",
+			request: request{
+				requestURI:  "/update/",
+				contentType: "application/json",
+				body:        []byte(`{"id":"Alloc","type":"gauge", "value": 123456.789}`),
+			},
 			fields: fields{
 				Config: configs.DefaultServerConfig,
 				Server: &test.ServerMock{},
 			},
 			mockArgs: mockArgs{
-				arg0: "Value",
+				arg0: "UpdateValue",
 				arg1: models.Metric{
-					Name: "Alloc",
-					Type: models.GaugeType,
+					Name:  "Alloc",
+					Type:  models.GaugeType,
+					Value: models.Value{Gauge: 123456.789},
 				},
 				ret0: models.Metric{
 					Name:  "Alloc",
 					Type:  models.GaugeType,
 					Value: models.Value{Gauge: 123456.789},
 				},
-				ret1: true,
+				ret1: nil,
 			},
 			want: want{
 				code:        http.StatusOK,
-				response:    "123456.789",
-				contentType: "text/plain",
+				body:        []byte(`{"id":"Alloc","type":"gauge","value":123456.789}`),
+				contentType: "application/json",
 			},
 		},
 		{
-			name:    "ValueCounterPollCount",
-			request: "/value/counter/PollCount",
+			name: "UpdateJSONCounterPollCount",
+			request: request{
+				requestURI:  "/update/",
+				contentType: "application/json",
+				body:        []byte(`{"id":"PollCount","type":"counter", "delta":123}`),
+			},
 			fields: fields{
 				Config: configs.DefaultServerConfig,
 				Server: &test.ServerMock{},
 			},
 			mockArgs: mockArgs{
-				arg0: "Value",
+				arg0: "UpdateValue",
 				arg1: models.Metric{
-					Name: "PollCount",
-					Type: models.CounterType,
+					Name:  "PollCount",
+					Type:  models.CounterType,
+					Value: models.Value{Counter: 123},
 				},
 				ret0: models.Metric{
 					Name:  "PollCount",
 					Type:  models.CounterType,
-					Value: models.Value{Counter: 1234},
+					Value: models.Value{Counter: 124},
 				},
-				ret1: true,
+				ret1: nil,
 			},
 			want: want{
 				code:        http.StatusOK,
-				response:    "1234",
-				contentType: "text/plain",
+				body:        []byte(`{"id":"PollCount","type":"counter","delta":124}`),
+				contentType: "application/json",
 			},
 		},
 	}
@@ -102,18 +118,20 @@ func TestHandler_ValueHandleFn(t *testing.T) {
 			serverMock.On(tt.mockArgs.arg0, tt.mockArgs.arg1).Return(tt.mockArgs.ret0, tt.mockArgs.ret1)
 
 			router := chi.NewRouter()
-			router.Get("/value/{typeMetric}/{nameMetric}", h.ValueHandleFn)
+			router.Get("/update/", h.UpdateJSONHandleFn)
 
-			request := httptest.NewRequest(http.MethodGet, tt.request, nil)
+			request := httptest.NewRequest(http.MethodGet, tt.request.requestURI, bytes.NewReader(tt.request.body))
 
 			w := httptest.NewRecorder()
 			router.ServeHTTP(w, request)
 			res := w.Result()
 			body, _ := io.ReadAll(res.Body)
-			res.Body.Close()
-			assert.Equal(t, tt.want.code, res.StatusCode)
-			assert.Equal(t, tt.want.contentType, res.Header.Get("Content-Type"))
-			assert.Equal(t, tt.want.response, string(body))
+			_ = res.Body.Close()
+
+			assert := assert.New(t)
+			assert.Equal(tt.want.code, res.StatusCode)
+			assert.Equal(tt.want.contentType, res.Header.Get("Content-Type"))
+			assert.JSONEq(string(tt.want.body), string(body))
 
 		})
 	}

@@ -40,15 +40,17 @@ func (client RestyClient) PostJSON(metric *models.Metric) {
 		client.AddressServer)
 	body, err := json.Marshal(metric)
 	if err != nil {
-		log.Println(err)
+		log.Printf("client.PostJSON: error: %v\n", err)
 		return
 	}
 	resp, err := client.Client.R().
-		SetBody(body).
 		SetHeader("Content-Type", "application/json").
+		SetBody(body).
 		Post(url)
 	if err != nil {
-		log.Println(err)
+		log.Printf("client.PostJSON: error: %v\n", err)
 	}
-	log.Printf("POST %v Status: %v", url, resp.Status())
+	log.Printf("client.PostJSON: URL = %v\n", url)
+	log.Printf("client.PostJSON: BODY = %v\n", string(body))
+	log.Printf("POST %v Status: %v\n", url, resp.Status())
 }

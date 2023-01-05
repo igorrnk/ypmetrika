@@ -20,6 +20,7 @@ func (h Handler) ValueHandleFn(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
+	w.Header().Add("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusOK)
 	_, err = w.Write([]byte(fmt.Sprint(metric.Value)))
 	if err != nil {

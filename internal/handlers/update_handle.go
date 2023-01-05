@@ -24,6 +24,7 @@ func (h Handler) UpdateHandleFn(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	w.Header().Add("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusOK)
 	log.Printf("Request %v has been handled.", r.RequestURI)
 }

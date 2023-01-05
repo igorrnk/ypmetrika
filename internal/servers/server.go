@@ -2,8 +2,8 @@ package servers
 
 import (
 	"context"
+	"errors"
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
 	"github.com/igorrnk/ypmetrika/configs"
 	"github.com/igorrnk/ypmetrika/internal/handlers"
 	"github.com/igorrnk/ypmetrika/internal/models"
@@ -28,7 +28,7 @@ func NewServer(config configs.ServerConfig) (*Server, error) {
 		Repository: storage.New(),
 	}
 	newServer.Router = chi.NewRouter()
-	newServer.Router.Use(middleware.Logger)
+	//newServer.Router.Use(middleware.Logger)
 	h := handlers.NewHandler(config, newServer)
 	newServer.Router.Get("/", h.HandleFn)
 	newServer.Router.Get("/value/{typeMetric}/{nameMetric}", h.ValueHandleFn)
@@ -56,6 +56,17 @@ func (server *Server) Run() error {
 
 	return s.Shutdown(ctx)
 
+}
+
+func (server *Server) UpdateValue(metric models.Metric) (models.Metric, error) {
+	if err := server.Update(metric); err != nil {
+		return models.Metric{}, err
+	}
+	metric, ok := server.Value(metric)
+	if !ok {
+		return models.Metric{}, errors.New("Server.UpdateValue: wrong metric")
+	}
+	return metric, nil
 }
 
 func (server *Server) Update(metric models.Metric) error {

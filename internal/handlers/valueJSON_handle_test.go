@@ -69,7 +69,36 @@ func TestHandler_ValueJSONHandleFn(t *testing.T) {
 			},
 			want: want{
 				code:        http.StatusOK,
-				body:        []byte(`{"id":"Alloc","type":"gauge","delta":0,"value":123456.789}`),
+				body:        []byte(`{"id":"Alloc","type":"gauge","value":123456.789}`),
+				contentType: "application/json",
+			},
+		},
+		{
+			name: "ValueJSONCounterPollCount",
+			request: request{
+				reauestURI:  "/value/",
+				contentType: "application/json",
+				body:        []byte(`{"id":"PollCount","type":"counter"}`),
+			},
+			fields: fields{
+				Config: configs.DefaultServerConfig,
+				Server: &test.ServerMock{},
+			},
+			mockArgs: mockArgs{arg0: "Value",
+				arg1: models.Metric{
+					Name: "PollCount",
+					Type: models.CounterType,
+				},
+				ret0: models.Metric{
+					Name:  "PollCount",
+					Type:  models.CounterType,
+					Value: models.Value{Counter: 123},
+				},
+				ret1: true,
+			},
+			want: want{
+				code:        http.StatusOK,
+				body:        []byte(`{"id":"PollCount","type":"counter","delta":123}`),
 				contentType: "application/json",
 			},
 		},

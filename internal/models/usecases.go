@@ -1,6 +1,7 @@
 package models
 
 type ServerUsecase interface {
+	UpdateValue(metric Metric) (Metric, error)
 	Update(metric Metric) error
 	Value(metric Metric) (Metric, bool)
 	GetAll() []Metric
