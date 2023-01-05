@@ -2,7 +2,7 @@ package agents
 
 import (
 	"context"
-	"github.com/igorrnk/ypmetrika/configs"
+	"github.com/igorrnk/ypmetrika/internal/configs"
 	"time"
 )
 

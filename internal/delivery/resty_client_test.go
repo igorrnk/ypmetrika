@@ -3,7 +3,7 @@ package delivery
 import (
 	"context"
 	"github.com/go-resty/resty/v2"
-	"github.com/igorrnk/ypmetrika/configs"
+	configs2 "github.com/igorrnk/ypmetrika/internal/configs"
 	"github.com/igorrnk/ypmetrika/internal/models"
 	"github.com/stretchr/testify/assert"
 	"io"
@@ -35,7 +35,7 @@ func TestRestyClient_PostJSON(t *testing.T) {
 			name: "Gauge",
 			fields: fields{
 				Client:        resty.New(),
-				AddressServer: configs.DefaultAgentConfig.AddressServer,
+				AddressServer: configs2.DefaultAgentConfig.AddressServer,
 			},
 			args: args{
 				metric: &models.Metric{
@@ -66,7 +66,7 @@ func TestRestyClient_PostJSON(t *testing.T) {
 				r.Body.Close()
 				w.WriteHeader(http.StatusOK)
 			})
-			go http.ListenAndServe(configs.DefaultServerConfig.AddressServer, nil)
+			go http.ListenAndServe(configs2.DefaultServerConfig.AddressServer, nil)
 			time.Sleep(1 * time.Second)
 			client.PostJSON(tt.args.metric)
 			time.Sleep(1 * time.Second)

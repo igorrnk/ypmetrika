@@ -1,17 +1,17 @@
 package main
 
 import (
-	"github.com/igorrnk/ypmetrika/configs"
+	"github.com/igorrnk/ypmetrika/internal/configs"
 	"github.com/igorrnk/ypmetrika/internal/servers"
 	"log"
 	"os"
 )
 
 func main() {
-	logger := log.Default()
-	logFile, _ := os.OpenFile("./log/serverLog.log", os.O_APPEND|os.O_RDWR|os.O_CREATE, 0777)
-	logger.SetOutput(logFile)
-	logger.SetFlags(log.Lshortfile | log.Ldate | log.Ltime)
+
+	logFile, _ := os.OpenFile("./log/serverLog.log", os.O_TRUNC|os.O_RDWR|os.O_CREATE, 0777)
+	log.SetOutput(logFile)
+	//log.SetFlags(log.Lshortfile | log.Ldate | log.Ltime)
 
 	config := configs.InitServerConfig()
 	server, err := servers.NewServer(config)

@@ -3,7 +3,7 @@ package handlers
 import (
 	"bytes"
 	"github.com/go-chi/chi/v5"
-	"github.com/igorrnk/ypmetrika/configs"
+	"github.com/igorrnk/ypmetrika/internal/configs"
 	"github.com/igorrnk/ypmetrika/internal/models"
 	"github.com/igorrnk/ypmetrika/internal/test"
 	"github.com/stretchr/testify/assert"

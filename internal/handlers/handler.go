@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"github.com/igorrnk/ypmetrika/configs"
+	"github.com/igorrnk/ypmetrika/internal/configs"
 	"github.com/igorrnk/ypmetrika/internal/models"
 	"html/template"
 	"log"

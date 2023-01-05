@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/go-chi/chi/v5"
-	"github.com/igorrnk/ypmetrika/configs"
+	"github.com/igorrnk/ypmetrika/internal/configs"
 	"github.com/igorrnk/ypmetrika/internal/handlers"
 	"github.com/igorrnk/ypmetrika/internal/models"
 	"github.com/igorrnk/ypmetrika/internal/storage"
@@ -24,7 +24,7 @@ type Server struct {
 
 func NewServer(config configs.ServerConfig) (*Server, error) {
 	newServer := &Server{
-		Config:     configs.InitServerConfig(),
+		Config:     config,
 		Repository: storage.New(),
 	}
 	newServer.Router = chi.NewRouter()
