@@ -4,10 +4,14 @@ import (
 	"fmt"
 	"github.com/caarlos0/env/v6"
 	"log"
+	"time"
 )
 
 type ServerConfig struct {
-	AddressServer string `env:"ADDRESS"`
+	AddressServer string        `env:"ADDRESS"`
+	StoreInterval time.Duration `env:"STORE_INTERVAL"`
+	StoreFileName string        `env:"STORE_FILE"`
+	RestoreData   bool          `env:"RESTORE"`
 	NameHTMLFile  string
 }
 
@@ -17,6 +21,9 @@ func (config ServerConfig) String() string {
 
 var DefaultServerConfig = ServerConfig{
 	AddressServer: "127.0.0.1:8080",
+	StoreInterval: 30 * time.Second,
+	StoreFileName: "/tmp/devops-metrics-db.json",
+	RestoreData:   true,
 	NameHTMLFile:  "./web/metrics.html",
 }
 

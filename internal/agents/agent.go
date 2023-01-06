@@ -28,7 +28,7 @@ func NewAgent(config configs.AgentConfig) (*Agent, error) {
 		Config: config,
 	}
 	newAgent.Scheduler = NewScheduler(config, newAgent.Update, newAgent.Report)
-	newAgent.Repository = storage.New()
+	newAgent.Repository = storage.NewAgentStorage()
 	newAgent.Client = delivery.NewRestyClient(config)
 
 	return newAgent, nil

@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	logFile, _ := os.OpenFile("./log/agentLog.log", os.O_TRUNC|os.O_RDWR|os.O_CREATE, 0777)
+	logFile, _ := os.OpenFile("./log/agentLog.log", os.O_TRUNC|os.O_RDWR|os.O_CREATE, 0644)
 	log.SetOutput(logFile)
 	//log.SetFlags(log.Lshortfile | log.Ldate | log.Ltime)
 

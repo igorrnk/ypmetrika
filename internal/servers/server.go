@@ -13,49 +13,59 @@ import (
 	"os"
 	"os/signal"
 	"sort"
-	"time"
 )
 
 type Server struct {
-	Config     configs.ServerConfig
-	Repository models.Repository
-	Router     chi.Router
+	config     configs.ServerConfig
+	httpServer *http.Server
+	repository models.Repository
+	router     chi.Router
+	context    context.Context
 }
 
-func NewServer(config configs.ServerConfig) (*Server, error) {
+func NewServer(ctx context.Context, config configs.ServerConfig) (*Server, error) {
+
 	newServer := &Server{
-		Config:     config,
-		Repository: storage.New(),
+		config:     config,
+		context:    ctx,
+		repository: storage.NewServerStorage(ctx, config),
 	}
-	newServer.Router = chi.NewRouter()
+	newServer.router = chi.NewRouter()
 	//newServer.Router.Use(middleware.Logger)
 	h := handlers.NewHandler(config, newServer)
-	newServer.Router.Get("/", h.HandleFn)
-	newServer.Router.Get("/value/{typeMetric}/{nameMetric}", h.ValueHandleFn)
-	newServer.Router.Post("/update/{typeMetric}/{nameMetric}/{valueMetric}", h.UpdateHandleFn)
-	newServer.Router.Post("/update/", h.UpdateJSONHandleFn)
-	newServer.Router.Post("/value/", h.ValueJSONHandleFn)
+	newServer.router.Get("/", h.HandleFn)
+	newServer.router.Get("/value/{typeMetric}/{nameMetric}", h.ValueHandleFn)
+	newServer.router.Post("/update/{typeMetric}/{nameMetric}/{valueMetric}", h.UpdateHandleFn)
+	newServer.router.Post("/update/", h.UpdateJSONHandleFn)
+	newServer.router.Post("/value/", h.ValueJSONHandleFn)
 
 	return newServer, nil
 }
 
 func (server *Server) Run() error {
 	log.Println("Server is running.")
-	s := &http.Server{Addr: server.Config.AddressServer,
-		Handler: server.Router}
+	server.httpServer = &http.Server{Addr: server.config.AddressServer,
+		Handler: server.router}
+
+	idleConnsClosed := make(chan struct{})
 	go func() {
-		err := s.ListenAndServe()
-		log.Println(err)
+		sigint := make(chan os.Signal, 1)
+		signal.Notify(sigint, os.Interrupt)
+		<-sigint
+		if err := server.httpServer.Shutdown(server.context); err != nil {
+			log.Printf("Server.Run: http.Server.Shutdown: %v", err)
+		}
+		close(idleConnsClosed)
 	}()
 
-	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, os.Interrupt)
-	<-stop
-	ctx, shutdown := context.WithTimeout(context.Background(), 1*time.Second)
-	defer shutdown()
+	defer server.context.Done()
 
-	return s.Shutdown(ctx)
-
+	if err := server.httpServer.ListenAndServe(); err != http.ErrServerClosed {
+		return err
+	}
+	<-idleConnsClosed
+	log.Println("Server has been stopped.")
+	return nil
 }
 
 func (server *Server) UpdateValue(metric models.Metric) (models.Metric, error) {
@@ -71,11 +81,11 @@ func (server *Server) UpdateValue(metric models.Metric) (models.Metric, error) {
 
 func (server *Server) Update(metric models.Metric) error {
 	if metric.Type == models.CounterType {
-		if oldMetric, ok := server.Repository.Read(metric); ok {
+		if oldMetric, ok := server.repository.Read(metric); ok {
 			metric.Value.Counter += oldMetric.Value.Counter
 		}
 	}
-	err := server.Repository.Write(metric)
+	err := server.repository.Write(metric)
 	if err != nil {
 		log.Printf("Metric %v hasn't been updated.", metric.Name)
 		return err
@@ -85,11 +95,11 @@ func (server *Server) Update(metric models.Metric) error {
 }
 
 func (server *Server) Value(metric models.Metric) (models.Metric, bool) {
-	return server.Repository.Read(metric)
+	return server.repository.Read(metric)
 }
 
 func (server *Server) GetAll() []models.Metric {
-	metrics, _ := server.Repository.ReadAll()
+	metrics, _ := server.repository.ReadAll()
 	sort.SliceStable(metrics, func(i, j int) bool { return metrics[i].Name < metrics[j].Name })
 	sort.SliceStable(metrics, func(i, j int) bool { return metrics[i].Type < metrics[j].Type })
 	return metrics

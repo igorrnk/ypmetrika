@@ -38,7 +38,6 @@ OuterLoop:
 			go scheduler.Reporter()
 		case <-ctx.Done():
 			break OuterLoop
-
 		}
 	}
 	tickerPoll.Stop()
