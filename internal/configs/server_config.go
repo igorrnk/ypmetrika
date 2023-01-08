@@ -1,6 +1,7 @@
 package configs
 
 import (
+	"flag"
 	"fmt"
 	"github.com/caarlos0/env/v6"
 	"log"
@@ -29,7 +30,24 @@ var DefaultServerConfig = ServerConfig{
 
 func InitServerConfig() ServerConfig {
 	config := DefaultServerConfig
-	err := env.Parse(&config)
+	addressServer := flag.String("a", "127.0.0.1:8080", "The address of the server")
+	storeFileName := flag.String("f", "/tmp/devops-metrics-db.json", "The path of the data file")
+	restoreData := flag.Bool("r", true, "Restore from the data file")
+
+	var err error
+	flag.Func("i", "The store interval", func(flagValue string) error {
+		if config.StoreInterval, err = time.ParseDuration(flagValue); err != nil {
+			return err
+		}
+		return nil
+	})
+
+	flag.Parse()
+	config.AddressServer = *addressServer
+	config.StoreFileName = *storeFileName
+	config.RestoreData = *restoreData
+
+	err = env.Parse(&config)
 	if err != nil {
 		log.Printf("configs.InitServerConfig: error: %v", err)
 	}
