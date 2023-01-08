@@ -6,6 +6,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/igorrnk/ypmetrika/internal/configs"
 	"github.com/igorrnk/ypmetrika/internal/handlers"
+	"github.com/igorrnk/ypmetrika/internal/middleware"
 	"github.com/igorrnk/ypmetrika/internal/models"
 	"github.com/igorrnk/ypmetrika/internal/storage"
 	"log"
@@ -32,6 +33,9 @@ func NewServer(ctx context.Context, config configs.ServerConfig) (*Server, error
 	}
 	newServer.router = chi.NewRouter()
 	//newServer.Router.Use(middleware.Logger)
+
+	//newServer.router.Use(middleware.Compress(5, "text/html", "text/json"))
+	newServer.router.Use(middleware.Compress)
 	h := handlers.NewHandler(config, newServer)
 	newServer.router.Get("/", h.HandleFn)
 	newServer.router.Get("/value/{typeMetric}/{nameMetric}", h.ValueHandleFn)
