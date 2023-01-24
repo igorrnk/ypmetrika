@@ -21,7 +21,7 @@ func (config ServerConfig) String() string {
 }
 
 var DefaultServerConfig = ServerConfig{
-	AddressServer: "127.0.0.1:8080",
+	AddressServer: "http://127.0.0.1:8080",
 	StoreInterval: 30 * time.Second,
 	StoreFileName: "/tmp/devops-metrics-db.json",
 	RestoreData:   true,
@@ -30,7 +30,7 @@ var DefaultServerConfig = ServerConfig{
 
 func InitServerConfig() ServerConfig {
 	config := DefaultServerConfig
-	addressServer := flag.String("a", "127.0.0.1:8080", "The address of the server")
+	addressServer := flag.String("a", "http://127.0.0.1:8080", "The address of the server")
 	storeFileName := flag.String("f", "/tmp/devops-metrics-db.json", "The path of the data file")
 	restoreData := flag.Bool("r", true, "Restore from the data file")
 

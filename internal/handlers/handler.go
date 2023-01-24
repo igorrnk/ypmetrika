@@ -33,6 +33,9 @@ func (h Handler) HandleFn(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Add("Content-Type", "text/html")
 	t, err := template.ParseFiles(h.Config.NameHTMLFile)
+	if err != nil {
+		log.Println(err)
+	}
 	err = t.Execute(w, page)
 	if err != nil {
 		log.Println(err)
