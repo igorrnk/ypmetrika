@@ -25,14 +25,17 @@ func (h Handler) HandleFn(w http.ResponseWriter, r *http.Request) {
 		Tittle: "GetAll metrics",
 	}
 
-	list, err := h.Server.GetAll()
-	if err != nil {
-		log.Println(err)
+	list, err1 := h.Server.GetAll()
+	if err1 != nil {
+		log.Println(err1)
 	}
 	page.List = list
 
 	w.Header().Add("Content-Type", "text/html")
 	t, err := template.ParseFiles(h.Config.NameHTMLFile)
+	if err != nil {
+		log.Println(err)
+	}
 	err = t.Execute(w, page)
 	if err != nil {
 		log.Println(err)

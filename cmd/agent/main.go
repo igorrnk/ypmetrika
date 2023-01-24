@@ -8,12 +8,12 @@ import (
 )
 
 func main() {
-	logFile, _ := os.OpenFile("./log/agentLog.log", os.O_TRUNC|os.O_RDWR|os.O_CREATE, 0644)
-	log.SetOutput(logFile)
+	//logFile, _ := os.OpenFile("./log/agentLog.log", os.O_TRUNC|os.O_RDWR|os.O_CREATE, 0644)
+	log.SetOutput(os.Stdout)
 	//log.SetFlags(log.Lshortfile | log.Ldate | log.Ltime)
 
 	config := configs.InitAgentConfig()
-
+	log.Println(config)
 	agent, err := agents.NewAgent(config)
 	if err != nil {
 		log.Fatal(err)
