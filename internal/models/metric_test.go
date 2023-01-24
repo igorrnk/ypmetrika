@@ -33,7 +33,7 @@ func TestMetric_UnmarshalJSON(t *testing.T) {
 			want: Metric{
 				Name:   "Alloc",
 				Type:   GaugeType,
-				Value:  Value{Gauge: 123456.789},
+				Value:  NewValue(123456.789, 0),
 				Source: RuntimeSource,
 			},
 		},
@@ -47,7 +47,7 @@ func TestMetric_UnmarshalJSON(t *testing.T) {
 			want: Metric{
 				Name:   "PollCount",
 				Type:   CounterType,
-				Value:  Value{Counter: 123},
+				Value:  NewValue(0, 123),
 				Source: RuntimeSource,
 			},
 		},
@@ -101,7 +101,7 @@ func TestMetric_MarshalJSON(t *testing.T) {
 			fields: fields{
 				Name:   "Alloc",
 				Type:   GaugeType,
-				Value:  Value{Gauge: 123456.789},
+				Value:  NewValue(123456.789, 0),
 				Source: RuntimeSource,
 			},
 			want:    `{"id":"Alloc", "type":"gauge", "value":123456.789}`,
@@ -112,7 +112,7 @@ func TestMetric_MarshalJSON(t *testing.T) {
 			fields: fields{
 				Name:   "Alloc",
 				Type:   CounterType,
-				Value:  Value{Counter: 123},
+				Value:  NewValue(0, 123),
 				Source: RuntimeSource,
 			},
 			want:    `{"id":"Alloc","type":"counter","delta":123}`,

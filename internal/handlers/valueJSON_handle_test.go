@@ -63,9 +63,9 @@ func TestHandler_ValueJSONHandleFn(t *testing.T) {
 				ret0: models.Metric{
 					Name:  "Alloc",
 					Type:  models.GaugeType,
-					Value: models.Value{Gauge: 123456.789},
+					Value: models.NewValue(123456.789, 0),
 				},
-				ret1: true,
+				ret1: nil,
 			},
 			want: want{
 				code:        http.StatusOK,
@@ -84,7 +84,8 @@ func TestHandler_ValueJSONHandleFn(t *testing.T) {
 				Config: configs.DefaultServerConfig,
 				Server: &test.ServerMock{},
 			},
-			mockArgs: mockArgs{arg0: "Value",
+			mockArgs: mockArgs{
+				arg0: "Value",
 				arg1: models.Metric{
 					Name: "PollCount",
 					Type: models.CounterType,
@@ -92,9 +93,9 @@ func TestHandler_ValueJSONHandleFn(t *testing.T) {
 				ret0: models.Metric{
 					Name:  "PollCount",
 					Type:  models.CounterType,
-					Value: models.Value{Counter: 123},
+					Value: models.NewValue(0, 123),
 				},
-				ret1: true,
+				ret1: nil,
 			},
 			want: want{
 				code:        http.StatusOK,
