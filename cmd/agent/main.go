@@ -13,7 +13,7 @@ func main() {
 	//log.SetFlags(log.Lshortfile | log.Ldate | log.Ltime)
 
 	config := configs.InitAgentConfig()
-
+	log.Println(config)
 	agent, err := agents.NewAgent(config)
 	if err != nil {
 		log.Fatal(err)

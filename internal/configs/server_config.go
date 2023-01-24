@@ -17,7 +17,11 @@ type ServerConfig struct {
 }
 
 func (config ServerConfig) String() string {
-	return fmt.Sprintf("ADDRESS = %v", config.AddressServer)
+	return fmt.Sprintf("ADDRESS = %v, STORE_INTERVAL = %v, STORE_FILE = %v, RESTORE = %v",
+		config.AddressServer,
+		config.StoreInterval,
+		config.StoreFileName,
+		config.RestoreData)
 }
 
 var DefaultServerConfig = ServerConfig{

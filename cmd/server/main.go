@@ -15,7 +15,7 @@ func main() {
 	//log.SetFlags(log.Lshortfile | log.Ldate | log.Ltime)
 
 	config := configs.InitServerConfig()
-
+	log.Println(config)
 	server, err := servers.NewServer(context.Background(), config)
 	if err != nil {
 		log.Fatal(err)
