@@ -25,9 +25,9 @@ func (h Handler) HandleFn(w http.ResponseWriter, r *http.Request) {
 		Tittle: "GetAll metrics",
 	}
 
-	list, err := h.Server.GetAll()
-	if err != nil {
-		log.Println(err)
+	list, err1 := h.Server.GetAll()
+	if err1 != nil {
+		log.Println(err1)
 	}
 	page.List = list
 
