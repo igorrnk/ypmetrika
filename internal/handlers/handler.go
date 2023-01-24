@@ -23,13 +23,17 @@ func NewHandler(config configs.ServerConfig, serverUsecase models.ServerUsecase)
 func (h Handler) HandleFn(w http.ResponseWriter, r *http.Request) {
 	page := models.Page{
 		Tittle: "GetAll metrics",
-		List:   h.Server.GetAll(),
 	}
 
+	list, err := h.Server.GetAll()
+	if err != nil {
+		log.Println(err)
+	}
+	page.List = list
+
 	w.Header().Add("Content-Type", "text/html")
-	//w.Header().Add("Content-Encoding", "gzip")
-	t, _ := template.ParseFiles(h.Config.NameHTMLFile)
-	err := t.Execute(w, page)
+	t, err := template.ParseFiles(h.Config.NameHTMLFile)
+	err = t.Execute(w, page)
 	if err != nil {
 		log.Println(err)
 	}

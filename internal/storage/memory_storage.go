@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/igorrnk/ypmetrika/internal/configs"
 	"github.com/igorrnk/ypmetrika/internal/models"
 	"log"
@@ -76,13 +77,13 @@ func (storage *MemoryStorage) Write(metric models.Metric) error {
 	return nil
 }
 
-func (storage *MemoryStorage) Read(metric models.Metric) (models.Metric, bool) {
+func (storage *MemoryStorage) Read(metric models.Metric) (models.Metric, error) {
 	storage.mutexMem.RLock()
 	defer storage.mutexMem.RUnlock()
 	if value, ok := storage.metrics[metric.Name]; ok {
-		return *value, true
+		return *value, nil
 	}
-	return models.Metric{}, false
+	return models.Metric{}, fmt.Errorf("metric hasn't been found")
 }
 
 func (storage *MemoryStorage) ReadAll() ([]models.Metric, error) {

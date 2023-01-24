@@ -15,8 +15,8 @@ func (h Handler) ValueHandleFn(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotImplemented)
 		return
 	}
-	metric, ok := h.Server.Value(models.Metric{Name: nameMetric, Type: typeMetric})
-	if !ok {
+	metric, err := h.Server.Value(models.Metric{Name: nameMetric, Type: typeMetric})
+	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}

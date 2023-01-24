@@ -25,8 +25,8 @@ func (h Handler) ValueJSONHandleFn(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Handler.ValueJSONHandleFn: Unmarshal error: %v\n", err)
 		return
 	}
-	metric, ok := h.Server.Value(metric)
-	if !ok {
+	metric, err = h.Server.Value(metric)
+	if err != nil {
 		log.Printf("Handler.ValueJSONHandleFn: Server Value Metric hasn`t been found.\n")
 		w.WriteHeader(http.StatusNotFound)
 		return

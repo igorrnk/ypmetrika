@@ -76,8 +76,9 @@ func (server *Server) UpdateValue(metric models.Metric) (models.Metric, error) {
 	if err := server.Update(metric); err != nil {
 		return models.Metric{}, err
 	}
-	metric, ok := server.Value(metric)
-	if !ok {
+	var err error
+	metric, err = server.Value(metric)
+	if err != nil {
 		return models.Metric{}, errors.New("Server.UpdateValue: wrong metric")
 	}
 	return metric, nil
@@ -85,8 +86,8 @@ func (server *Server) UpdateValue(metric models.Metric) (models.Metric, error) {
 
 func (server *Server) Update(metric models.Metric) error {
 	if metric.Type == models.CounterType {
-		if oldMetric, ok := server.repository.Read(metric); ok {
-			metric.Value.Counter += oldMetric.Value.Counter
+		if oldMetric, err := server.repository.Read(metric); err == nil {
+			*metric.Value.Counter += *oldMetric.Value.Counter
 		}
 	}
 	err := server.repository.Write(metric)
@@ -98,13 +99,16 @@ func (server *Server) Update(metric models.Metric) error {
 	return nil
 }
 
-func (server *Server) Value(metric models.Metric) (models.Metric, bool) {
+func (server *Server) Value(metric models.Metric) (models.Metric, error) {
 	return server.repository.Read(metric)
 }
 
-func (server *Server) GetAll() []models.Metric {
-	metrics, _ := server.repository.ReadAll()
+func (server *Server) GetAll() ([]models.Metric, error) {
+	metrics, err := server.repository.ReadAll()
+	if err != nil {
+		return nil, err
+	}
 	sort.SliceStable(metrics, func(i, j int) bool { return metrics[i].Name < metrics[j].Name })
 	sort.SliceStable(metrics, func(i, j int) bool { return metrics[i].Type < metrics[j].Type })
-	return metrics
+	return metrics, nil
 }

@@ -11,22 +11,22 @@ type Gauge float64
 type Counter int64
 
 type Value struct {
-	Gauge   float64
-	Counter int64
+	Gauge   *float64
+	Counter *int64
 }
 
 func (value Value) String() string {
 	switch {
-	case value.Gauge != 0:
-		return fmt.Sprint(value.Gauge)
-	case value.Counter != 0:
-		return fmt.Sprint(value.Counter)
+	case value.Gauge != nil:
+		return fmt.Sprint(*value.Gauge)
+	case value.Counter != nil:
+		return fmt.Sprint(*value.Counter)
 	}
-	return "0"
+	return "nil"
 }
 
 type Metric struct {
-	Name   string `json:"id"`
+	Name   string
 	Type   MetricType
 	Value  Value
 	Source SourceType
@@ -51,10 +51,10 @@ func (metric *Metric) UnmarshalJSON(bytes []byte) error {
 		return err
 	}
 	if aliasValue.Delta != nil {
-		metric.Value.Counter = *aliasValue.Delta
+		metric.Value.Counter = aliasValue.Delta
 	}
 	if aliasValue.Value != nil {
-		metric.Value.Gauge = *aliasValue.Value
+		metric.Value.Gauge = aliasValue.Value
 	}
 	return nil
 }
@@ -67,9 +67,9 @@ func (metric Metric) MarshalJSON() ([]byte, error) {
 	}
 	switch metric.Type {
 	case GaugeType:
-		aliasValue.Value = &metric.Value.Gauge
+		aliasValue.Value = metric.Value.Gauge
 	case CounterType:
-		aliasValue.Delta = &metric.Value.Counter
+		aliasValue.Delta = metric.Value.Counter
 	}
 	return json.Marshal(aliasValue)
 }
@@ -78,9 +78,9 @@ func (metric Metric) ValueS() string {
 	var s string
 	switch metric.Type {
 	case GaugeType:
-		s = fmt.Sprint(metric.Value.Gauge)
+		s = fmt.Sprint(*metric.Value.Gauge)
 	case CounterType:
-		s = fmt.Sprint(metric.Value.Counter)
+		s = fmt.Sprint(*metric.Value.Counter)
 	}
 	return s
 }
@@ -119,10 +119,14 @@ func ToValue(s string, metricType MetricType) (Value, error) {
 	switch metricType {
 	case GaugeType:
 		gauge, err := strconv.ParseFloat(s, 64)
-		return Value{Gauge: gauge}, err
+		return Value{Gauge: &gauge}, err
 	case CounterType:
 		counter, err := strconv.ParseInt(s, 10, 64)
-		return Value{Counter: counter}, err
+		return Value{Counter: &counter}, err
 	}
 	return Value{}, fmt.Errorf("models.ToValue: converting %v, %v: invalid metricType", s, metricType)
+}
+
+func NewValue(gauge float64, counter int64) Value {
+	return Value{&gauge, &counter}
 }
