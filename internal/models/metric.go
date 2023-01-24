@@ -128,5 +128,11 @@ func ToValue(s string, metricType MetricType) (Value, error) {
 }
 
 func NewValue(gauge float64, counter int64) Value {
-	return Value{&gauge, &counter}
+	if gauge == 0 {
+		return Value{nil, &counter}
+	}
+	if counter == 0 {
+		return Value{&gauge, nil}
+	}
+	return Value{nil, nil}
 }

@@ -20,13 +20,13 @@ func (mock *ServerMock) Update(metric models.Metric) error {
 	return args.Error(0)
 }
 
-func (mock *ServerMock) Value(metric models.Metric) (models.Metric, bool) {
+func (mock *ServerMock) Value(metric models.Metric) (models.Metric, error) {
 	log.Printf("Called ServerMock.Value(%v)\n", metric)
 	args := mock.Called(metric)
-	return args.Get(0).(models.Metric), args.Get(1).(bool)
+	return args.Get(0).(models.Metric), args.Get(1).(error)
 }
 
-func (mock *ServerMock) GetAll() []models.Metric {
+func (mock *ServerMock) GetAll() ([]models.Metric, error) {
 	args := mock.Called()
-	return args.Get(0).([]models.Metric)
+	return args.Get(0).([]models.Metric), args.Get(1).(error)
 }
