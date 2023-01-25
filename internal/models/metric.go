@@ -22,6 +22,7 @@ func (value Value) String() string {
 	case value.Counter != 0:
 		return fmt.Sprint(value.Counter)
 	}
+
 	return "0"
 }
 
