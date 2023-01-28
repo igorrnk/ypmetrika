@@ -24,12 +24,12 @@ func (config AgentConfig) String() string {
 var DefaultAgentConfig AgentConfig = AgentConfig{
 	PollInterval:   2 * time.Second,
 	ReportInterval: 10 * time.Second,
-	AddressServer:  "127.0.0.1:8080",
+	AddressServer:  "http://127.0.0.1:8080",
 }
 
 func InitAgentConfig() AgentConfig {
 	config := DefaultAgentConfig
-	addressServer := flag.String("a", "127.0.0.1:8080", "The address of the server")
+	addressServer := flag.String("a", "http://127.0.0.1:8080", "The address of the server")
 	var err error
 	flag.Func("p", "The poll interval", func(flagValue string) error {
 		if config.PollInterval, err = time.ParseDuration(flagValue); err != nil {

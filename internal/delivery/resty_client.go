@@ -23,7 +23,7 @@ func NewRestyClient(config configs.AgentConfig) *RestyClient {
 
 func (client RestyClient) Post(metric *models.Metric) {
 
-	url := fmt.Sprintf("http://%s/update/%s/%s/%s",
+	url := fmt.Sprintf("%s/update/%s/%s/%s",
 		client.AddressServer, metric.Type, metric.Name, metric.Value)
 	resp, err := client.Client.R().
 		SetHeader("Content-Type", "text/plain").
@@ -36,7 +36,7 @@ func (client RestyClient) Post(metric *models.Metric) {
 
 func (client RestyClient) PostJSON(metric *models.Metric) {
 
-	url := fmt.Sprintf("http://%s/update/",
+	url := fmt.Sprintf("%s/update/",
 		client.AddressServer)
 	body, err := json.Marshal(metric)
 	if err != nil {
