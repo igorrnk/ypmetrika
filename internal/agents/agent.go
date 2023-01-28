@@ -15,14 +15,14 @@ import (
 )
 
 type Agent struct {
-	Config        configs.AgentConfig
+	Config        *configs.AgentConfig
 	Scheduler     *Scheduler
 	Repository    models.Repository
 	Client        models.Client
 	UpdateCounter int64
 }
 
-func NewAgent(config configs.AgentConfig) (*Agent, error) {
+func NewAgent(config *configs.AgentConfig) (*Agent, error) {
 
 	newAgent := &Agent{
 		Config: config,

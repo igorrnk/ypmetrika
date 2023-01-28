@@ -14,7 +14,7 @@ type RestyClient struct {
 	AddressServer string
 }
 
-func NewRestyClient(config configs.AgentConfig) *RestyClient {
+func NewRestyClient(config *configs.AgentConfig) *RestyClient {
 	return &RestyClient{
 		Client:        resty.New(),
 		AddressServer: config.AddressServer,

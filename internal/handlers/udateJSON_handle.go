@@ -17,9 +17,6 @@ func (h Handler) UpdateJSONHandleFn(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Handler.UpdateJSONHandleFn: body ReadAll error: %v\n", err)
 		return
 	}
-	if err = r.Body.Close(); err != nil {
-		log.Printf("Handler.UpdateJSONHandleFn: body Close error: %v\n", err)
-	}
 	log.Printf("Handler.UpdateJSONHandleFn: Body = %v\n", string(body))
 	if err = json.Unmarshal(body, &metric); err != nil {
 		log.Printf("Handler.UpdateJSONHandleFn: Unmarshal error: %v\n", err)
@@ -36,8 +33,5 @@ func (h Handler) UpdateJSONHandleFn(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Handler.UpdateJSONHandleFn: Marshal error: %v\n", err)
 		return
 	}
-	_, err = w.Write(data)
-	if err != nil {
-		log.Printf("Handler.UpdateJSONHandleFn: Write error: %v\n", err)
-	}
+	w.Write(data)
 }

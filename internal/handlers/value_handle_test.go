@@ -16,7 +16,7 @@ import (
 
 func TestHandler_ValueHandleFn(t *testing.T) {
 	type fields struct {
-		Config configs.ServerConfig
+		Config *configs.ServerConfig
 		Server models.ServerUsecase
 	}
 	type mockArgs struct {
@@ -42,7 +42,7 @@ func TestHandler_ValueHandleFn(t *testing.T) {
 			name:    "ValueGaugeAlloc",
 			request: "/value/gauge/Alloc",
 			fields: fields{
-				Config: configs.DefaultServerConfig,
+				Config: &configs.DefaultSC,
 				Server: &test.ServerMock{},
 			},
 			mockArgs: mockArgs{
@@ -68,7 +68,7 @@ func TestHandler_ValueHandleFn(t *testing.T) {
 			name:    "ValueCounterPollCount",
 			request: "/value/counter/PollCount",
 			fields: fields{
-				Config: configs.DefaultServerConfig,
+				Config: &configs.DefaultSC,
 				Server: &test.ServerMock{},
 			},
 			mockArgs: mockArgs{

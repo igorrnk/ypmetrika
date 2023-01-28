@@ -17,19 +17,19 @@ import (
 )
 
 type Server struct {
-	config     configs.ServerConfig
+	config     *configs.ServerConfig
 	httpServer *http.Server
 	repository models.Repository
 	router     chi.Router
 	context    context.Context
 }
 
-func NewServer(ctx context.Context, config configs.ServerConfig) (*Server, error) {
+func NewServer(ctx context.Context, config *configs.ServerConfig) (*Server, error) {
 
 	newServer := &Server{
 		config:     config,
 		context:    ctx,
-		repository: storage.NewServerStorage(ctx, config),
+		repository: storage.NewFileStorage(ctx, config),
 	}
 	newServer.router = chi.NewRouter()
 	//newServer.Router.Use(middleware.Logger)

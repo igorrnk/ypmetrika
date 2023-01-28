@@ -12,11 +12,13 @@ func main() {
 	log.SetOutput(logFile)
 	//log.SetFlags(log.Lshortfile | log.Ldate | log.Ltime)
 
-	config := configs.InitAgentConfig()
-
-	agent, err := agents.NewAgent(config)
+	config, err := configs.InitAgentConfig()
 	if err != nil {
 		log.Fatal(err)
+	}
+	agent, err2 := agents.NewAgent(config)
+	if err2 != nil {
+		log.Fatal(err2)
 	}
 	if err := agent.Run(); err != nil {
 		log.Fatal(err)

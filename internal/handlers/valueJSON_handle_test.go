@@ -17,7 +17,7 @@ import (
 
 func TestHandler_ValueJSONHandleFn(t *testing.T) {
 	type fields struct {
-		Config configs.ServerConfig
+		Config *configs.ServerConfig
 		Server models.ServerUsecase
 	}
 	type request struct {
@@ -52,7 +52,7 @@ func TestHandler_ValueJSONHandleFn(t *testing.T) {
 				body:        []byte(`{"id":"Alloc","type":"gauge"}`),
 			},
 			fields: fields{
-				Config: configs.DefaultServerConfig,
+				Config: &configs.DefaultSC,
 				Server: &test.ServerMock{},
 			},
 			mockArgs: mockArgs{arg0: "Value",
@@ -81,7 +81,7 @@ func TestHandler_ValueJSONHandleFn(t *testing.T) {
 				body:        []byte(`{"id":"PollCount","type":"counter"}`),
 			},
 			fields: fields{
-				Config: configs.DefaultServerConfig,
+				Config: &configs.DefaultSC,
 				Server: &test.ServerMock{},
 			},
 			mockArgs: mockArgs{arg0: "Value",

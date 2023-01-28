@@ -35,7 +35,7 @@ func TestRestyClient_PostJSON(t *testing.T) {
 			name: "Gauge",
 			fields: fields{
 				Client:        resty.New(),
-				AddressServer: configs2.DefaultAgentConfig.AddressServer,
+				AddressServer: configs2.DefaultAC.AddressServer,
 			},
 			args: args{
 				metric: &models.Metric{
@@ -66,7 +66,7 @@ func TestRestyClient_PostJSON(t *testing.T) {
 				r.Body.Close()
 				w.WriteHeader(http.StatusOK)
 			})
-			go http.ListenAndServe(configs2.DefaultServerConfig.AddressServer, nil)
+			go http.ListenAndServe(configs2.DefaultSC.AddressServer, nil)
 			time.Sleep(1 * time.Second)
 			client.PostJSON(tt.args.metric)
 			time.Sleep(1 * time.Second)

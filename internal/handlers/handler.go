@@ -9,11 +9,11 @@ import (
 )
 
 type Handler struct {
-	Config configs.ServerConfig
+	Config *configs.ServerConfig
 	Server models.ServerUsecase
 }
 
-func NewHandler(config configs.ServerConfig, serverUsecase models.ServerUsecase) *Handler {
+func NewHandler(config *configs.ServerConfig, serverUsecase models.ServerUsecase) *Handler {
 	return &Handler{
 		Config: config,
 		Server: serverUsecase,

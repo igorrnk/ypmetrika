@@ -14,10 +14,12 @@ func main() {
 	log.SetOutput(logFile)
 	//log.SetFlags(log.Lshortfile | log.Ldate | log.Ltime)
 
-	config := configs.InitServerConfig()
-
-	server, err := servers.NewServer(context.Background(), config)
+	config, err := configs.InitServerConfig()
 	if err != nil {
+		log.Fatal(err)
+	}
+	server, err1 := servers.NewServer(context.Background(), config)
+	if err1 != nil {
 		log.Fatal(err)
 	}
 	if err := server.Run(); err != nil {

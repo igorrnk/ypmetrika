@@ -2,7 +2,6 @@ package configs
 
 import (
 	"flag"
-	"fmt"
 	"github.com/caarlos0/env/v6"
 	"log"
 	"time"
@@ -16,41 +15,25 @@ type ServerConfig struct {
 	NameHTMLFile  string
 }
 
-func (config ServerConfig) String() string {
-	return fmt.Sprintf("ADDRESS = %v", config.AddressServer)
-}
-
-var DefaultServerConfig = ServerConfig{
-	AddressServer: "127.0.0.1:8080",
-	StoreInterval: 30 * time.Second,
-	StoreFileName: "/tmp/devops-metrics-db.json",
-	RestoreData:   true,
-	NameHTMLFile:  "./web/metrics.html",
-}
-
-func InitServerConfig() ServerConfig {
-	config := DefaultServerConfig
-	addressServer := flag.String("a", "127.0.0.1:8080", "The address of the server")
-	storeFileName := flag.String("f", "/tmp/devops-metrics-db.json", "The path of the data file")
-	restoreData := flag.Bool("r", true, "Restore from the data file")
-
-	var err error
-	flag.Func("i", "The store interval", func(flagValue string) error {
-		if config.StoreInterval, err = time.ParseDuration(flagValue); err != nil {
-			return err
-		}
-		return nil
-	})
-
+func InitServerConfig() (*ServerConfig, error) {
+	addressServer := flag.String("a", DefaultSC.AddressServer, "The address of the server")
+	storeFileName := flag.String("f", DefaultSC.StoreFileName, "The path of the data file")
+	restoreData := flag.Bool("r", DefaultSC.RestoreData, "Restore from the data file")
+	storeInterval := flag.Duration("i", DefaultSC.StoreInterval, "The store interval")
 	flag.Parse()
-	config.AddressServer = *addressServer
-	config.StoreFileName = *storeFileName
-	config.RestoreData = *restoreData
+	config := &ServerConfig{
+		AddressServer: *addressServer,
+		StoreInterval: *storeInterval,
+		StoreFileName: *storeFileName,
+		RestoreData:   *restoreData,
+		NameHTMLFile:  DefaultSC.NameHTMLFile,
+	}
 
-	err = env.Parse(&config)
+	err := env.Parse(config)
 	if err != nil {
 		log.Printf("configs.InitServerConfig: error: %v", err)
+		return nil, err
 	}
-	log.Printf("Initial server configuration: %s\n", config)
-	return config
+	log.Printf("Initial server configuration: %+v\n", config)
+	return config, nil
 }

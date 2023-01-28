@@ -15,30 +15,24 @@ func (h Handler) ValueJSONHandleFn(w http.ResponseWriter, r *http.Request) {
 	var err error
 	if body, err = io.ReadAll(r.Body); err != nil {
 		log.Printf("Handler.ValueJSONHandleFn: body ReadAll error: %v\n", err)
+		http.Error(w, "Unable to read body", http.StatusBadRequest)
 		return
-	}
-	if err = r.Body.Close(); err != nil {
-		log.Printf("Handler.ValueJSONHandleFn: body Close error: %v\n", err)
 	}
 	log.Printf("Handler.ValueJSONHandleFn: Body = %v\n", string(body))
 	if err = json.Unmarshal(body, &metric); err != nil {
 		log.Printf("Handler.ValueJSONHandleFn: Unmarshal error: %v\n", err)
+		http.Error(w, "Unable to decode body", http.StatusBadRequest)
 		return
 	}
 	metric, ok := h.Server.Value(metric)
 	if !ok {
 		log.Printf("Handler.ValueJSONHandleFn: Server Value Metric hasn`t been found.\n")
-		w.WriteHeader(http.StatusNotFound)
+		http.Error(w, "Metric not found", http.StatusNotFound)
 		return
 	}
 	w.Header().Add("Content-Type", "application/json")
-	data, err := json.Marshal(metric)
-	if err != nil {
-		log.Printf("Handler.ValueJSONHandleFn: Marshal error: %v\n", err)
+	if err := json.NewEncoder(w).Encode(&metric); err != nil {
+		http.Error(w, "unable to serialize metric", http.StatusInternalServerError)
 		return
-	}
-	_, err = w.Write(data)
-	if err != nil {
-		log.Printf("Handler.ValueJSONHandleFn: Write error: %v\n", err)
 	}
 }

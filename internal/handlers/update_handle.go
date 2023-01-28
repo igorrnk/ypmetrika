@@ -11,17 +11,17 @@ func (h Handler) UpdateHandleFn(w http.ResponseWriter, r *http.Request) {
 	nameMetric := chi.URLParam(r, "nameMetric")
 	typeMetric, err := models.ToMetricType(chi.URLParam(r, "typeMetric"))
 	if err != nil {
-		w.WriteHeader(http.StatusNotImplemented)
+		http.Error(w, "Wrong metric type", http.StatusNotImplemented)
 		return
 	}
-	valueMetric, err := models.ToValue(chi.URLParam(r, "valueMetric"), typeMetric)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+	valueMetric, err1 := models.ToValue(chi.URLParam(r, "valueMetric"), typeMetric)
+	if err1 != nil {
+		http.Error(w, "Metric not found", http.StatusBadRequest)
 		return
 	}
 	metric := models.Metric{Name: nameMetric, Type: typeMetric, Value: valueMetric}
 	if err = h.Server.Update(metric); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		http.Error(w, "Metric not found", http.StatusInternalServerError)
 		return
 	}
 	w.Header().Add("Content-Type", "text/plain")

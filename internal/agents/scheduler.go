@@ -14,7 +14,7 @@ type Scheduler struct {
 	StopChan       chan time.Time
 }
 
-func NewScheduler(conf configs.AgentConfig, updater func(), reporter func()) *Scheduler {
+func NewScheduler(conf *configs.AgentConfig, updater func(), reporter func()) *Scheduler {
 	newScheduler := &Scheduler{
 		conf.PollInterval,
 		conf.ReportInterval,
