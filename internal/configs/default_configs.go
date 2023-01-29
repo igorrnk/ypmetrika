@@ -3,9 +3,9 @@ package configs
 import "time"
 
 var DefaultAC AgentConfig = AgentConfig{
+	AddressServer:  "127.0.0.1:8080",
 	PollInterval:   2 * time.Second,
 	ReportInterval: 10 * time.Second,
-	AddressServer:  "http://127.0.0.1:8080",
 }
 
 var DefaultSC = ServerConfig{

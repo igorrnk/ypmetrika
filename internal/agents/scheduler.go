@@ -33,9 +33,9 @@ OuterLoop:
 	for {
 		select {
 		case <-tickerPoll.C:
-			go scheduler.Updater()
+			scheduler.Updater()
 		case <-tickerReport.C:
-			go scheduler.Reporter()
+			scheduler.Reporter()
 		case <-ctx.Done():
 			break OuterLoop
 		}

@@ -28,6 +28,7 @@ func InitAgentConfig() (*AgentConfig, error) {
 		log.Printf("configs.InitAgentConfig: error: %v", err)
 		return nil, err
 	}
+	agentConfig.AddressServer = "http://" + agentConfig.AddressServer
 	log.Printf("Initial agent configuration: %+v\n", agentConfig)
 	return agentConfig, nil
 }
