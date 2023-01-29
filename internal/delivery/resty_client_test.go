@@ -35,7 +35,7 @@ func TestRestyClient_PostJSON(t *testing.T) {
 			name: "Gauge",
 			fields: fields{
 				Client:        resty.New(),
-				AddressServer: configs2.DefaultAC.AddressServer,
+				AddressServer: "http://" + configs2.DefaultAC.AddressServer,
 			},
 			args: args{
 				metric: &models.Metric{

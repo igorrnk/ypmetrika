@@ -52,5 +52,9 @@ func (client RestyClient) PostJSON(metric *models.Metric) {
 	}
 	log.Printf("client.PostJSON: URL = %v\n", url)
 	log.Printf("client.PostJSON: BODY = %v\n", string(body))
-	log.Printf("POST %v Status: %v\n", url, resp.Status())
+	if resp != nil {
+		log.Printf("POST %v Status: %v\n", url, resp.Status())
+	} else {
+		log.Printf("POST %v Status: no response\n", url)
+	}
 }
