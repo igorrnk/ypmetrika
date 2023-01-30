@@ -59,14 +59,14 @@ func (agent *Agent) Update() {
 			field := s.FieldByName(metric.Name)
 			switch field.Kind() {
 			case reflect.Uint64, reflect.Uint32:
-				metric.Value.Gauge = float64(field.Uint())
+				metric.Gauge = float64(field.Uint())
 			case reflect.Float64:
-				metric.Value.Gauge = field.Float()
+				metric.Gauge = field.Float()
 			}
 		case models.CounterSource:
-			metric.Value.Counter = agent.UpdateCounter
+			metric.Counter = agent.UpdateCounter
 		case models.RandomSource:
-			metric.Value.Gauge = rand.Float64()
+			metric.Gauge = rand.Float64()
 		}
 		err := agent.Repository.Write(metric)
 		if err != nil {

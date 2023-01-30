@@ -54,7 +54,7 @@ func TestHandler_ValueHandleFn(t *testing.T) {
 				ret0: models.Metric{
 					Name:  "Alloc",
 					Type:  models.GaugeType,
-					Value: models.Value{Gauge: 123456.789},
+					Gauge: 123456.789,
 				},
 				ret1: true,
 			},
@@ -78,9 +78,9 @@ func TestHandler_ValueHandleFn(t *testing.T) {
 					Type: models.CounterType,
 				},
 				ret0: models.Metric{
-					Name:  "PollCount",
-					Type:  models.CounterType,
-					Value: models.Value{Counter: 1234},
+					Name:    "PollCount",
+					Type:    models.CounterType,
+					Counter: 1234,
 				},
 				ret1: true,
 			},

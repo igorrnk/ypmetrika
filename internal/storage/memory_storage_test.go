@@ -23,9 +23,9 @@ func TestMemStorage_Write(t *testing.T) {
 			name: "Good test #1",
 			args: args{
 				metric: models.Metric{
-					Name:  "TestMetric",
-					Type:  models.CounterType,
-					Value: models.Value{Counter: 1000},
+					Name:    "TestMetric",
+					Type:    models.CounterType,
+					Counter: 1000,
 				},
 			},
 			wantErr: false,
@@ -35,7 +35,7 @@ func TestMemStorage_Write(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			memStorage := NewAgentStorage()
 			wantMemStorage := &MemoryStorage{metrics: map[string]*models.Metric{tt.args.metric.Name: &tt.args.metric}}
-			err := memStorage.Write(tt.args.metric)
+			err := memStorage.Write(&tt.args.metric)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("WriteMetric() error = %v, wantErr %v", err, tt.wantErr)
 			}

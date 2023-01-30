@@ -10,7 +10,7 @@ import (
 
 func (h Handler) ValueJSONHandleFn(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Handler.ValueJSONHandleFn: URL = %v\n", r.URL)
-	metric := models.Metric{}
+	metric := &models.Metric{}
 	var body []byte
 	var err error
 	if body, err = io.ReadAll(r.Body); err != nil {
@@ -24,8 +24,8 @@ func (h Handler) ValueJSONHandleFn(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Unable to decode body", http.StatusBadRequest)
 		return
 	}
-	metric, ok := h.Server.Value(metric)
-	if !ok {
+	metric, err = h.Server.Value(metric)
+	if err != nil {
 		log.Printf("Handler.ValueJSONHandleFn: Server Value Metric hasn`t been found.\n")
 		http.Error(w, "Metric not found", http.StatusNotFound)
 		return

@@ -46,10 +46,11 @@ func NewFileStorage(ctx context.Context, config *configs.ServerConfig) *FileStor
 
 }
 
-func (storage *FileStorage) Write(metric models.Metric) error {
-	storage.mutexMem.Lock()
-	defer storage.mutexMem.Unlock()
-	storage.metrics[metric.Name] = &metric
+func (storage *FileStorage) Write(metric *models.Metric) error {
+	err := storage.MemoryStorage.Write(metric)
+	if err != nil {
+		return err
+	}
 	if storage.syncSaveData {
 		storage.saveData()
 	}
@@ -75,18 +76,19 @@ func (storage *FileStorage) saveData() {
 	defer storage.mutexFile.Unlock()
 	file, err := os.Create(storage.filename)
 	if err != nil {
-		log.Printf("MemoryStorage.saveData: create error: %v\n", err)
+		log.Printf("FileStorage.saveData: create error: %v\n", err)
 		return
 	}
 	defer func() {
 		if err = file.Close(); err != nil {
-			log.Printf("MemoryStorage.saveData: close error: %v\n", err)
+			log.Printf("FileStorage.saveData: close error: %v\n", err)
 		}
 	}()
-	encoder := json.NewEncoder(file)
-	err = encoder.Encode(storage.metrics)
+	storage.MemoryStorage.mutexMem.RLock()
+	defer storage.MemoryStorage.mutexMem.RUnlock()
+	err = json.NewEncoder(file).Encode(storage.metrics)
 	if err != nil {
-		log.Printf("MemoryStorage.saveData: encode error: %v\n", err)
+		log.Printf("FileStorage.saveData: encode error: %v\n", err)
 	}
 }
 
@@ -95,17 +97,19 @@ func (storage *FileStorage) restoreData() {
 	defer storage.mutexFile.Unlock()
 	file, err := os.Open(storage.filename)
 	if err != nil {
-		log.Printf("MemoryStorage.restoreFromFile: open error: %v\n", err)
+		log.Printf("FileStorage.restoreFromFile: open error: %v\n", err)
 		return
 	}
 	defer func() {
 		if err = file.Close(); err != nil {
-			log.Printf("MemoryStorage.restoreFromFile: close error: %v\n", err)
+			log.Printf("FileStorage.restoreFromFile: close error: %v\n", err)
 		}
 	}()
 	decoder := json.NewDecoder(file)
+	storage.MemoryStorage.mutexMem.Lock()
+	defer storage.MemoryStorage.mutexMem.Unlock()
 	err = decoder.Decode(&storage.metrics)
 	if err != nil {
-		log.Printf("MemoryStorage.restoreFromFile: decode error: %v\n", err)
+		log.Printf("FileStorage.restoreFromFile: decode error: %v\n", err)
 	}
 }

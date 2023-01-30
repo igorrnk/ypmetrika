@@ -63,7 +63,6 @@ func (server *Server) Run() error {
 	}()
 
 	defer server.context.Done()
-
 	if err := server.httpServer.ListenAndServe(); err != http.ErrServerClosed {
 		return err
 	}
@@ -72,21 +71,26 @@ func (server *Server) Run() error {
 	return nil
 }
 
-func (server *Server) UpdateValue(metric models.Metric) (models.Metric, error) {
-	if err := server.Update(metric); err != nil {
-		return models.Metric{}, err
+func (server *Server) UpdateValue(metric *models.Metric) (*models.Metric, error) {
+	var err error
+	if err = server.Update(metric); err != nil {
+		return nil, err
 	}
-	metric, ok := server.Value(metric)
-	if !ok {
-		return models.Metric{}, errors.New("Server.UpdateValue: wrong metric")
+	metric, err = server.Value(metric)
+	if err != nil {
+		return nil, errors.New("Server.UpdateValue: wrong metric")
 	}
 	return metric, nil
 }
 
-func (server *Server) Update(metric models.Metric) error {
+func (server *Server) Update(metric *models.Metric) error {
 	if metric.Type == models.CounterType {
-		if oldMetric, ok := server.repository.Read(metric); ok {
-			metric.Value.Counter += oldMetric.Value.Counter
+		oldMetric, err := server.repository.Read(metric)
+		if err != nil {
+			return err
+		}
+		if oldMetric != nil {
+			metric.Counter += oldMetric.Counter
 		}
 	}
 	err := server.repository.Write(metric)
@@ -98,13 +102,16 @@ func (server *Server) Update(metric models.Metric) error {
 	return nil
 }
 
-func (server *Server) Value(metric models.Metric) (models.Metric, bool) {
+func (server *Server) Value(metric *models.Metric) (*models.Metric, error) {
 	return server.repository.Read(metric)
 }
 
-func (server *Server) GetAll() []models.Metric {
-	metrics, _ := server.repository.ReadAll()
+func (server *Server) GetAll() ([]models.Metric, error) {
+	metrics, err := server.repository.ReadAll()
+	if err != nil {
+		return nil, err
+	}
 	sort.SliceStable(metrics, func(i, j int) bool { return metrics[i].Name < metrics[j].Name })
 	sort.SliceStable(metrics, func(i, j int) bool { return metrics[i].Type < metrics[j].Type })
-	return metrics
+	return metrics, nil
 }

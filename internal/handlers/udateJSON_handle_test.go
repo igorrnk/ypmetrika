@@ -57,15 +57,15 @@ func TestHandler_UpdateJSONHandleFn(t *testing.T) {
 			},
 			mockArgs: mockArgs{
 				arg0: "UpdateValue",
-				arg1: models.Metric{
+				arg1: &models.Metric{
 					Name:  "Alloc",
 					Type:  models.GaugeType,
-					Value: models.Value{Gauge: 123456.789},
+					Gauge: 123456.789,
 				},
-				ret0: models.Metric{
+				ret0: &models.Metric{
 					Name:  "Alloc",
 					Type:  models.GaugeType,
-					Value: models.Value{Gauge: 123456.789},
+					Gauge: 123456.789,
 				},
 				ret1: nil,
 			},
@@ -88,15 +88,15 @@ func TestHandler_UpdateJSONHandleFn(t *testing.T) {
 			},
 			mockArgs: mockArgs{
 				arg0: "UpdateValue",
-				arg1: models.Metric{
-					Name:  "PollCount",
-					Type:  models.CounterType,
-					Value: models.Value{Counter: 123},
+				arg1: &models.Metric{
+					Name:    "PollCount",
+					Type:    models.CounterType,
+					Counter: 123,
 				},
-				ret0: models.Metric{
-					Name:  "PollCount",
-					Type:  models.CounterType,
-					Value: models.Value{Counter: 124},
+				ret0: &models.Metric{
+					Name:    "PollCount",
+					Type:    models.CounterType,
+					Counter: 124,
 				},
 				ret1: nil,
 			},

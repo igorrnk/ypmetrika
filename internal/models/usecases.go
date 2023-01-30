@@ -1,10 +1,12 @@
 package models
 
 type ServerUsecase interface {
-	UpdateValue(metric Metric) (Metric, error)
-	Update(metric Metric) error
-	Value(metric Metric) (Metric, bool)
-	GetAll() []Metric
+	UpdateValue(metric *Metric) (*Metric, error)
+	Update(metric *Metric) error
+	Value(metric *Metric) (*Metric, error)
+
+	//GetAll returns slice of all metrics
+	GetAll() ([]Metric, error)
 }
 
 type Client interface {
@@ -13,7 +15,7 @@ type Client interface {
 }
 
 type Repository interface {
-	Write(Metric) error
-	Read(Metric) (Metric, bool)
+	Write(*Metric) error
+	Read(*Metric) (*Metric, error)
 	ReadAll() ([]Metric, error)
 }

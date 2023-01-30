@@ -15,13 +15,13 @@ func (h Handler) ValueHandleFn(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Wrong metric type", http.StatusNotImplemented)
 		return
 	}
-	metric, ok := h.Server.Value(models.Metric{Name: nameMetric, Type: typeMetric})
-	if !ok {
-		http.Error(w, "Metric not found", http.StatusNotFound)
+	metric, err := h.Server.Value(&models.Metric{Name: nameMetric, Type: typeMetric})
+	if err != nil {
+		http.Error(w, "metric not found", http.StatusNotFound)
 		return
 	}
 	w.Header().Add("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(fmt.Sprint(metric.Value)))
+	w.Write([]byte(fmt.Sprint(metric.Value())))
 	log.Printf("Request %v has been handled.", r.RequestURI)
 }

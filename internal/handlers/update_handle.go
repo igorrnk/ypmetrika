@@ -14,12 +14,13 @@ func (h Handler) UpdateHandleFn(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Wrong metric type", http.StatusNotImplemented)
 		return
 	}
-	valueMetric, err1 := models.ToValue(chi.URLParam(r, "valueMetric"), typeMetric)
+
+	metric, err1 := models.ToMetric(nameMetric, chi.URLParam(r, "valueMetric"), typeMetric)
 	if err1 != nil {
-		http.Error(w, "Metric not found", http.StatusBadRequest)
+		http.Error(w, err1.Error(), http.StatusBadRequest)
 		return
 	}
-	metric := models.Metric{Name: nameMetric, Type: typeMetric, Value: valueMetric}
+
 	if err = h.Server.Update(metric); err != nil {
 		http.Error(w, "Metric not found", http.StatusInternalServerError)
 		return

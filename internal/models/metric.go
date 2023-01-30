@@ -2,35 +2,16 @@ package models
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"strconv"
 )
 
-type Gauge float64
-type Counter int64
-
-type Value struct {
+type Metric struct {
+	Name    string `json:"id"`
+	Type    MetricType
 	Gauge   float64
 	Counter int64
-}
-
-func (value Value) String() string {
-	switch {
-	case value.Gauge != 0:
-		return fmt.Sprint(value.Gauge)
-	case value.Counter != 0:
-		return fmt.Sprint(value.Counter)
-	}
-
-	return "0"
-}
-
-type Metric struct {
-	Name   string `json:"id"`
-	Type   MetricType
-	Value  Value
-	Source SourceType
+	Source  SourceType
 }
 
 type JSONMetric struct {
@@ -52,36 +33,35 @@ func (metric *Metric) UnmarshalJSON(bytes []byte) error {
 		return err
 	}
 	if aliasValue.Delta != nil {
-		metric.Value.Counter = *aliasValue.Delta
+		metric.Counter = *aliasValue.Delta
 	}
 	if aliasValue.Value != nil {
-		metric.Value.Gauge = *aliasValue.Value
+		metric.Gauge = *aliasValue.Value
 	}
 	return nil
 }
 
-func (metric Metric) MarshalJSON() ([]byte, error) {
-	type MetricAlias Metric
+func (metric *Metric) MarshalJSON() ([]byte, error) {
 	aliasValue := JSONMetric{
 		ID:    metric.Name,
 		MType: metric.Type.String(),
 	}
 	switch metric.Type {
 	case GaugeType:
-		aliasValue.Value = &metric.Value.Gauge
+		aliasValue.Value = &metric.Gauge
 	case CounterType:
-		aliasValue.Delta = &metric.Value.Counter
+		aliasValue.Delta = &metric.Counter
 	}
 	return json.Marshal(aliasValue)
 }
 
-func (metric Metric) ValueS() string {
+func (metric *Metric) Value() string {
 	var s string
 	switch metric.Type {
 	case GaugeType:
-		s = fmt.Sprint(metric.Value.Gauge)
+		s = fmt.Sprint(metric.Gauge)
 	case CounterType:
-		s = fmt.Sprint(metric.Value.Counter)
+		s = fmt.Sprint(metric.Counter)
 	}
 	return s
 }
@@ -112,18 +92,24 @@ func ToMetricType(s string) (MetricType, error) {
 	}[s]; ok {
 		return metricType, nil
 	} else {
-		return 0, errors.New("models.ToMetricType: converting \"%s\": invalid syntax")
+		return 0, fmt.Errorf("wrong metric type: \"%s\"", s)
 	}
 }
 
-func ToValue(s string, metricType MetricType) (Value, error) {
+func ToMetric(name string, value string, metricType MetricType) (*Metric, error) {
+	metric := &Metric{
+		Name: name,
+		Type: metricType,
+	}
+	var err error
 	switch metricType {
 	case GaugeType:
-		gauge, err := strconv.ParseFloat(s, 64)
-		return Value{Gauge: gauge}, err
+		metric.Gauge, err = strconv.ParseFloat(value, 64)
 	case CounterType:
-		counter, err := strconv.ParseInt(s, 10, 64)
-		return Value{Counter: counter}, err
+		metric.Counter, err = strconv.ParseInt(value, 10, 64)
 	}
-	return Value{}, fmt.Errorf("models.ToValue: converting %v, %v: invalid metricType", s, metricType)
+	if err != nil {
+		return nil, fmt.Errorf("wrong value metric: %v", err)
+	}
+	return metric, nil
 }

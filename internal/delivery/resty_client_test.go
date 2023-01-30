@@ -41,7 +41,7 @@ func TestRestyClient_PostJSON(t *testing.T) {
 				metric: &models.Metric{
 					Name:  "Alloc",
 					Type:  models.GaugeType,
-					Value: models.Value{Gauge: 123456.789},
+					Gauge: 123456.789,
 				},
 			},
 			want: want{

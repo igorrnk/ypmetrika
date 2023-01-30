@@ -18,20 +18,21 @@ func NewAgentStorage() *MemoryStorage {
 	return storage
 }
 
-func (storage *MemoryStorage) Write(metric models.Metric) error {
+func (storage *MemoryStorage) Write(metric *models.Metric) error {
 	storage.mutexMem.Lock()
 	defer storage.mutexMem.Unlock()
-	storage.metrics[metric.Name] = &metric
+	storage.metrics[metric.Name] = metric
 	return nil
 }
 
-func (storage *MemoryStorage) Read(metric models.Metric) (models.Metric, bool) {
+func (storage *MemoryStorage) Read(metric *models.Metric) (*models.Metric, error) {
 	storage.mutexMem.RLock()
 	defer storage.mutexMem.RUnlock()
-	if value, ok := storage.metrics[metric.Name]; ok {
-		return *value, true
+	value, ok := storage.metrics[metric.Name]
+	if !ok {
+		return nil, nil // not found
 	}
-	return models.Metric{}, false
+	return value, nil // found
 }
 
 func (storage *MemoryStorage) ReadAll() ([]models.Metric, error) {

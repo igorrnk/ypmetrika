@@ -8,10 +8,11 @@ import (
 
 func TestMetric_UnmarshalJSON(t *testing.T) {
 	type fields struct {
-		Name   string
-		Type   MetricType
-		Value  Value
-		Source SourceType
+		Name    string
+		Type    MetricType
+		Gauge   float64
+		Counter int64
+		Source  SourceType
 	}
 	type args struct {
 		bytes []byte
@@ -33,7 +34,7 @@ func TestMetric_UnmarshalJSON(t *testing.T) {
 			want: Metric{
 				Name:   "Alloc",
 				Type:   GaugeType,
-				Value:  Value{Gauge: 123456.789},
+				Gauge:  123456.789,
 				Source: RuntimeSource,
 			},
 		},
@@ -45,10 +46,10 @@ func TestMetric_UnmarshalJSON(t *testing.T) {
 			},
 			wantErr: false,
 			want: Metric{
-				Name:   "PollCount",
-				Type:   CounterType,
-				Value:  Value{Counter: 123},
-				Source: RuntimeSource,
+				Name:    "PollCount",
+				Type:    CounterType,
+				Counter: 123,
+				Source:  RuntimeSource,
 			},
 		},
 		{
@@ -85,10 +86,11 @@ func TestMetric_UnmarshalJSON(t *testing.T) {
 
 func TestMetric_MarshalJSON(t *testing.T) {
 	type fields struct {
-		Name   string
-		Type   MetricType
-		Value  Value
-		Source SourceType
+		Name    string
+		Type    MetricType
+		Gauge   float64
+		Counter int64
+		Source  SourceType
 	}
 	tests := []struct {
 		name    string
@@ -101,7 +103,7 @@ func TestMetric_MarshalJSON(t *testing.T) {
 			fields: fields{
 				Name:   "Alloc",
 				Type:   GaugeType,
-				Value:  Value{Gauge: 123456.789},
+				Gauge:  123456.789,
 				Source: RuntimeSource,
 			},
 			want:    `{"id":"Alloc", "type":"gauge", "value":123456.789}`,
@@ -110,10 +112,10 @@ func TestMetric_MarshalJSON(t *testing.T) {
 		{
 			name: "Good Counter",
 			fields: fields{
-				Name:   "Alloc",
-				Type:   CounterType,
-				Value:  Value{Counter: 123},
-				Source: RuntimeSource,
+				Name:    "Alloc",
+				Type:    CounterType,
+				Counter: 123,
+				Source:  RuntimeSource,
 			},
 			want:    `{"id":"Alloc","type":"counter","delta":123}`,
 			wantErr: false,
@@ -122,10 +124,11 @@ func TestMetric_MarshalJSON(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			metric := Metric{
-				Name:   tt.fields.Name,
-				Type:   tt.fields.Type,
-				Value:  tt.fields.Value,
-				Source: tt.fields.Source,
+				Name:    tt.fields.Name,
+				Type:    tt.fields.Type,
+				Gauge:   tt.fields.Gauge,
+				Counter: tt.fields.Counter,
+				Source:  tt.fields.Source,
 			}
 			got, err := metric.MarshalJSON()
 			require.True(t, (err != nil) == tt.wantErr, "(err != nil)")

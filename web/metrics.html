@@ -2,21 +2,21 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>GetAll metrics</title>
+    <title>All metrics</title>
 </head>
 <body>
-<h1>GetAll metrics</h1>
+<h1>All metrics</h1>
 <table border="1px">
     <tr>
         <th width="150">Метрика</th>
         <th width="100">Тип</th>
         <th width="200">Значение</th>
     </tr>
-    {{range $key, $metric := .List}}
+    {{range .List}}
     <tr>
-        <td><a href="http://localhost:8080/value/{{$metric.Type}}/{{$metric.Name}}">{{ $metric.Name }}</a></td>
-        <td align="center">{{ $metric.Type }}</td>
-        <td align="center">{{ $metric.Value }}</td>
+        <td><a href="http://localhost:8080/value/{{.Type}}/{{.Name}}">{{ .Name }}</a></td>
+        <td align="center">{{ .Type }}</td>
+        <td align="center">{{ printf "%v" .Value }}</td>
     </tr>
     {{end}}
 </table>

@@ -10,7 +10,7 @@ import (
 
 func (h Handler) UpdateJSONHandleFn(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Handler.UpdateJSONHandleFn: URL = %v\n", r.URL)
-	metric := models.Metric{}
+	metric := &models.Metric{}
 	var body []byte
 	var err error
 	if body, err = io.ReadAll(r.Body); err != nil {
@@ -18,7 +18,7 @@ func (h Handler) UpdateJSONHandleFn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.Printf("Handler.UpdateJSONHandleFn: Body = %v\n", string(body))
-	if err = json.Unmarshal(body, &metric); err != nil {
+	if err = json.Unmarshal(body, metric); err != nil {
 		log.Printf("Handler.UpdateJSONHandleFn: Unmarshal error: %v\n", err)
 		return
 	}
