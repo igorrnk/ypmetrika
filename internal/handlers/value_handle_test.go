@@ -47,16 +47,16 @@ func TestHandler_ValueHandleFn(t *testing.T) {
 			},
 			mockArgs: mockArgs{
 				arg0: "Value",
-				arg1: models.Metric{
+				arg1: &models.Metric{
 					Name: "Alloc",
 					Type: models.GaugeType,
 				},
-				ret0: models.Metric{
+				ret0: &models.Metric{
 					Name:  "Alloc",
 					Type:  models.GaugeType,
 					Gauge: 123456.789,
 				},
-				ret1: true,
+				ret1: nil,
 			},
 			want: want{
 				code:        http.StatusOK,
@@ -73,16 +73,16 @@ func TestHandler_ValueHandleFn(t *testing.T) {
 			},
 			mockArgs: mockArgs{
 				arg0: "Value",
-				arg1: models.Metric{
+				arg1: &models.Metric{
 					Name: "PollCount",
 					Type: models.CounterType,
 				},
-				ret0: models.Metric{
+				ret0: &models.Metric{
 					Name:    "PollCount",
 					Type:    models.CounterType,
 					Counter: 1234,
 				},
-				ret1: true,
+				ret1: nil,
 			},
 			want: want{
 				code:        http.StatusOK,

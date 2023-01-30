@@ -26,7 +26,7 @@ func (h Handler) ValueJSONHandleFn(w http.ResponseWriter, r *http.Request) {
 	}
 	metric, err = h.Server.Value(metric)
 	if err != nil {
-		log.Printf("Handler.ValueJSONHandleFn: Server Value Metric hasn`t been found.\n")
+		log.Printf("Handler.ValueJSONHandleFn: %v\n", err)
 		http.Error(w, "Metric reading error", http.StatusInternalServerError)
 		return
 	}
