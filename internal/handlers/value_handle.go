@@ -17,6 +17,10 @@ func (h Handler) ValueHandleFn(w http.ResponseWriter, r *http.Request) {
 	}
 	metric, err := h.Server.Value(&models.Metric{Name: nameMetric, Type: typeMetric})
 	if err != nil {
+		http.Error(w, "Metric reading error", http.StatusInternalServerError)
+		return
+	}
+	if metric == nil {
 		http.Error(w, "metric not found", http.StatusNotFound)
 		return
 	}
