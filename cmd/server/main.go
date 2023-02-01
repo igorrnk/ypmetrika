@@ -1,20 +1,25 @@
 package main
 
 import (
-	"github.com/igorrnk/ypmetrika/configs"
-	"github.com/igorrnk/ypmetrika/internal/servers"
+	"context"
+	"github.com/igorrnk/ypmetrika/internal/configs"
+	"github.com/igorrnk/ypmetrika/internal/services"
 	"log"
 	"os"
 )
 
 func main() {
-	logger := log.Default()
-	logger.SetOutput(os.Stdout)
 
-	config := configs.InitServerConfig()
+	//logFile, _ := os.OpenFile("./log/serverLog.log", os.O_TRUNC|os.O_RDWR|os.O_CREATE, 0644)
+	log.SetOutput(os.Stdout)
+	//log.SetFlags(log.Lshortfile | log.Ldate | log.Ltime)
 
-	server, err := servers.NewServer(config)
+	config, err := configs.InitServerConfig()
 	if err != nil {
+		log.Fatal(err)
+	}
+	server, err1 := services.NewService(context.Background(), config)
+	if err1 != nil {
 		log.Fatal(err)
 	}
 	if err := server.Run(); err != nil {

@@ -2,7 +2,7 @@ package agents
 
 import (
 	"context"
-	"github.com/igorrnk/ypmetrika/configs"
+	"github.com/igorrnk/ypmetrika/internal/configs"
 	"time"
 )
 
@@ -14,7 +14,7 @@ type Scheduler struct {
 	StopChan       chan time.Time
 }
 
-func NewScheduler(conf configs.AgentConfig, updater func(), reporter func()) *Scheduler {
+func NewScheduler(conf *configs.AgentConfig, updater func(), reporter func()) *Scheduler {
 	newScheduler := &Scheduler{
 		conf.PollInterval,
 		conf.ReportInterval,
@@ -33,12 +33,11 @@ OuterLoop:
 	for {
 		select {
 		case <-tickerPoll.C:
-			go scheduler.Updater()
+			scheduler.Updater()
 		case <-tickerReport.C:
-			go scheduler.Reporter()
+			scheduler.Reporter()
 		case <-ctx.Done():
 			break OuterLoop
-
 		}
 	}
 	tickerPoll.Stop()
