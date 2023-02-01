@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"github.com/igorrnk/ypmetrika/internal/configs"
-	"github.com/igorrnk/ypmetrika/internal/servers"
+	"github.com/igorrnk/ypmetrika/internal/services"
 	"log"
 	"os"
 )
@@ -18,7 +18,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	server, err1 := servers.NewServer(context.Background(), config)
+	server, err1 := services.NewService(context.Background(), config)
 	if err1 != nil {
 		log.Fatal(err)
 	}

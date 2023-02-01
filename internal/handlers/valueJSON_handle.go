@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/igorrnk/ypmetrika/internal/models"
 	"io"
 	"log"
@@ -24,16 +25,18 @@ func (h Handler) ValueJSONHandleFn(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Unable to decode body", http.StatusBadRequest)
 		return
 	}
+
 	metric, err = h.Server.Value(metric)
+	if errors.Is(err, models.ErrNotFound) {
+		http.Error(w, "Metric not found", http.StatusNotFound)
+		return
+	}
 	if err != nil {
 		log.Printf("Handler.ValueJSONHandleFn: %v\n", err)
 		http.Error(w, "Metric reading error", http.StatusInternalServerError)
 		return
 	}
-	if metric == nil {
-		http.Error(w, "Metric not found", http.StatusNotFound)
-		return
-	}
+
 	w.Header().Add("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(&metric); err != nil {
 		http.Error(w, "unable to serialize metric", http.StatusInternalServerError)

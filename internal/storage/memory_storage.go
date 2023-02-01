@@ -30,7 +30,7 @@ func (storage *MemoryStorage) Read(metric *models.Metric) (*models.Metric, error
 	defer storage.mutexMem.RUnlock()
 	value, ok := storage.metrics[metric.Name]
 	if !ok {
-		return nil, nil // not found
+		return nil, models.ErrNotFound // not found
 	}
 	return value, nil // found
 }

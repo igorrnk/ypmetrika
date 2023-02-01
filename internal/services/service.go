@@ -1,4 +1,4 @@
-package servers
+package services
 
 import (
 	"context"
@@ -16,7 +16,7 @@ import (
 	"sort"
 )
 
-type Server struct {
+type Service struct {
 	config     *configs.ServerConfig
 	httpServer *http.Server
 	repository models.Repository
@@ -24,9 +24,9 @@ type Server struct {
 	context    context.Context
 }
 
-func NewServer(ctx context.Context, config *configs.ServerConfig) (*Server, error) {
+func NewService(ctx context.Context, config *configs.ServerConfig) (*Service, error) {
 
-	newServer := &Server{
+	newServer := &Service{
 		config:     config,
 		context:    ctx,
 		repository: storage.NewFileStorage(ctx, config),
@@ -46,8 +46,8 @@ func NewServer(ctx context.Context, config *configs.ServerConfig) (*Server, erro
 	return newServer, nil
 }
 
-func (server *Server) Run() error {
-	log.Println("Server is running.")
+func (server *Service) Run() error {
+	log.Println("Service is running.")
 	server.httpServer = &http.Server{Addr: server.config.AddressServer,
 		Handler: server.router}
 
@@ -57,7 +57,7 @@ func (server *Server) Run() error {
 		signal.Notify(sigint, os.Interrupt)
 		<-sigint
 		if err := server.httpServer.Shutdown(server.context); err != nil {
-			log.Printf("Server.Run: http.Server.Shutdown: %v", err)
+			log.Printf("Service.Run: http.Service.Shutdown: %v", err)
 		}
 		close(idleConnsClosed)
 	}()
@@ -67,29 +67,31 @@ func (server *Server) Run() error {
 		return err
 	}
 	<-idleConnsClosed
-	log.Println("Server has been stopped.")
+	log.Println("Service has been stopped.")
 	return nil
 }
 
-func (server *Server) UpdateValue(metric *models.Metric) (*models.Metric, error) {
+func (server *Service) UpdateValue(metric *models.Metric) (*models.Metric, error) {
 	var err error
 	if err = server.Update(metric); err != nil {
 		return nil, err
 	}
 	metric, err = server.Value(metric)
 	if err != nil {
-		return nil, errors.New("Server.UpdateValue: wrong metric")
+		return nil, errors.New("Service.UpdateValue: wrong metric")
 	}
 	return metric, nil
 }
 
-func (server *Server) Update(metric *models.Metric) error {
+func (server *Service) Update(metric *models.Metric) error {
 	if metric.Type == models.CounterType {
 		oldMetric, err := server.repository.Read(metric)
-		if err != nil {
+		if err != nil && !errors.Is(err, models.ErrNotFound) {
 			return err
 		}
-		if oldMetric != nil {
+		if errors.Is(err, models.ErrNotFound) {
+			// do nothing
+		} else {
 			metric.Counter += oldMetric.Counter
 		}
 	}
@@ -102,11 +104,11 @@ func (server *Server) Update(metric *models.Metric) error {
 	return nil
 }
 
-func (server *Server) Value(metric *models.Metric) (*models.Metric, error) {
+func (server *Service) Value(metric *models.Metric) (*models.Metric, error) {
 	return server.repository.Read(metric)
 }
 
-func (server *Server) GetAll() ([]models.Metric, error) {
+func (server *Service) GetAll() ([]models.Metric, error) {
 	metrics, err := server.repository.ReadAll()
 	if err != nil {
 		return nil, err
