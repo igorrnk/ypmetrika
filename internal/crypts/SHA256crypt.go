@@ -3,7 +3,7 @@ package crypts
 import (
 	"crypto/hmac"
 	"crypto/sha256"
-	"encoding/base64"
+	"encoding/hex"
 	"fmt"
 	"github.com/igorrnk/ypmetrika/internal/models"
 )
@@ -51,6 +51,6 @@ func (c CrypterSHA256) CheckHash(metric *models.Metric) error {
 func hash(s string, key string) string {
 	h := hmac.New(sha256.New, []byte(key))
 	h.Write([]byte(s))
-	return base64.StdEncoding.EncodeToString(h.Sum(nil))
+	return hex.EncodeToString(h.Sum(nil))
 
 }
