@@ -12,7 +12,7 @@ type CrypterSHA256 struct {
 	Key string
 }
 
-func NewCrypterSHA256(key string) CrypterSHA256 {
+func NewCrypterSHA256(key string) models.Crypter {
 	return CrypterSHA256{
 		Key: key,
 	}

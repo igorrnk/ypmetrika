@@ -32,9 +32,7 @@ func NewAgent(config *configs.AgentConfig) (*Agent, error) {
 	newAgent.Scheduler = NewScheduler(config, newAgent.Update, newAgent.Report)
 	newAgent.Repository = storage.NewAgentStorage()
 	newAgent.Client = delivery.NewRestyClient(config)
-	if config.Key != "" {
-		newAgent.Crypter = crypts.NewCrypterSHA256(config.Key)
-	}
+	newAgent.Crypter = crypts.NewCrypterSHA256(config.Key)
 
 	return newAgent, nil
 }
