@@ -63,9 +63,9 @@ func (metric *Metric) Value() string {
 	var s string
 	switch metric.Type {
 	case GaugeType:
-		s = fmt.Sprint(metric.Gauge)
+		s = fmt.Sprintf("%d", metric.Gauge)
 	case CounterType:
-		s = fmt.Sprint(metric.Counter)
+		s = fmt.Sprintf("%f", metric.Counter)
 	}
 	return s
 }
