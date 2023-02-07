@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/igorrnk/ypmetrika/internal/models"
+	"log"
 )
 
 type CrypterSHA256 struct {
@@ -43,13 +44,11 @@ func (c CrypterSHA256) CheckHash(metric *models.Metric) error {
 		hashMetric = hash(fmt.Sprintf("%s:gauge:%d", metric.Name, metric.Counter), c.Key)
 	}
 	if hashMetric != metric.Hash {
+		log.Println(hashMetric)
+		log.Println(metric)
 		return models.ErrWrongHash
 	}
 	return nil
-}
-
-func stringForHash(m *models.Metric) string {
-	return fmt.Sprintf("%s:%s:%s", m.Name, m.Type, m.Value())
 }
 
 func hash(s string, key string) string {
