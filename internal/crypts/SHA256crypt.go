@@ -24,9 +24,9 @@ func (c CrypterSHA256) AddHash(metric *models.Metric) {
 	}
 	switch metric.Type {
 	case models.GaugeType:
-		metric.Hash = hash(fmt.Sprintf("%s:counter:%s", metric.Name, metric.Value()), c.Key)
+		metric.Hash = hash(fmt.Sprintf("%s:counter:%f", metric.Name, metric.Gauge), c.Key)
 	case models.CounterType:
-		metric.Hash = hash(fmt.Sprintf("%s:gauge:%s", metric.Name, metric.Value()), c.Key)
+		metric.Hash = hash(fmt.Sprintf("%s:gauge:%d", metric.Name, metric.Counter), c.Key)
 	}
 }
 
@@ -38,14 +38,18 @@ func (c CrypterSHA256) CheckHash(metric *models.Metric) error {
 	var hashMetric string
 	switch metric.Type {
 	case models.GaugeType:
-		hashMetric = hash(fmt.Sprintf("%s:counter:%s", metric.Name, metric.Value()), c.Key)
+		hashMetric = hash(fmt.Sprintf("%s:counter:%f", metric.Name, metric.Gauge), c.Key)
 	case models.CounterType:
-		hashMetric = hash(fmt.Sprintf("%s:gauge:%s", metric.Name, metric.Value()), c.Key)
+		hashMetric = hash(fmt.Sprintf("%s:gauge:%d", metric.Name, metric.Counter), c.Key)
 	}
 	if hashMetric != metric.Hash {
 		return models.ErrWrongHash
 	}
 	return nil
+}
+
+func stringForHash(m *models.Metric) string {
+	return fmt.Sprintf("%s:%s:%s", m.Name, m.Type, m.Value())
 }
 
 func hash(s string, key string) string {
