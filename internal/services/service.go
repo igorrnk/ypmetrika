@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/go-chi/chi/v5"
 	"github.com/igorrnk/ypmetrika/internal/configs"
+	"github.com/igorrnk/ypmetrika/internal/crypts"
 	"github.com/igorrnk/ypmetrika/internal/handlers"
 	"github.com/igorrnk/ypmetrika/internal/middleware"
 	"github.com/igorrnk/ypmetrika/internal/models"
@@ -22,6 +23,7 @@ type Service struct {
 	repository models.Repository
 	router     chi.Router
 	context    context.Context
+	crypter    models.Crypter
 }
 
 func NewService(ctx context.Context, config *configs.ServerConfig) (*Service, error) {
@@ -30,6 +32,7 @@ func NewService(ctx context.Context, config *configs.ServerConfig) (*Service, er
 		config:     config,
 		context:    ctx,
 		repository: storage.NewFileStorage(ctx, config),
+		crypter:    crypts.NewCrypterSHA256(config.Key),
 	}
 	newServer.router = chi.NewRouter()
 	//newServer.Router.Use(middleware.Logger)
@@ -73,6 +76,9 @@ func (server *Service) Run() error {
 
 func (server *Service) UpdateValue(metric *models.Metric) (*models.Metric, error) {
 	var err error
+	if err = server.crypter.CheckHash(metric); err != nil {
+		return nil, err
+	}
 	if err = server.Update(metric); err != nil {
 		return nil, err
 	}
@@ -105,6 +111,7 @@ func (server *Service) Update(metric *models.Metric) error {
 }
 
 func (server *Service) Value(metric *models.Metric) (*models.Metric, error) {
+	server.crypter.AddHash(metric)
 	return server.repository.Read(metric)
 }
 
