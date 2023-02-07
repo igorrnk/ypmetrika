@@ -34,6 +34,7 @@ func (c CrypterSHA256) CheckHash(metric *models.Metric) error {
 	if c.Key == "" {
 		return nil
 	}
+
 	var hashMetric string
 	switch metric.Type {
 	case models.GaugeType:
