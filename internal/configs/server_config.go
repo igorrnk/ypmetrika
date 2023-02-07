@@ -12,6 +12,7 @@ type ServerConfig struct {
 	StoreInterval time.Duration `env:"STORE_INTERVAL"`
 	StoreFileName string        `env:"STORE_FILE"`
 	RestoreData   bool          `env:"RESTORE"`
+	Key           string        `env:"KEY"`
 	NameHTMLFile  string
 }
 
@@ -20,12 +21,14 @@ func InitServerConfig() (*ServerConfig, error) {
 	storeFileName := flag.String("f", DefaultSC.StoreFileName, "The path of the data file")
 	restoreData := flag.Bool("r", DefaultSC.RestoreData, "Restore from the data file")
 	storeInterval := flag.Duration("i", DefaultSC.StoreInterval, "The store interval")
+	key := flag.String("k", DefaultAC.Key, "The crypt key")
 	flag.Parse()
 	config := &ServerConfig{
 		AddressServer: *addressServer,
 		StoreInterval: *storeInterval,
 		StoreFileName: *storeFileName,
 		RestoreData:   *restoreData,
+		Key:           *key,
 		NameHTMLFile:  DefaultSC.NameHTMLFile,
 	}
 

@@ -3,6 +3,7 @@ package agents
 import (
 	"context"
 	"github.com/igorrnk/ypmetrika/internal/configs"
+	"github.com/igorrnk/ypmetrika/internal/crypts"
 	"github.com/igorrnk/ypmetrika/internal/delivery"
 	"github.com/igorrnk/ypmetrika/internal/models"
 	"github.com/igorrnk/ypmetrika/internal/storage"
@@ -19,6 +20,7 @@ type Agent struct {
 	Scheduler     *Scheduler
 	Repository    models.Repository
 	Client        models.Client
+	Crypter       models.Crypter
 	UpdateCounter int64
 }
 
@@ -30,6 +32,7 @@ func NewAgent(config *configs.AgentConfig) (*Agent, error) {
 	newAgent.Scheduler = NewScheduler(config, newAgent.Update, newAgent.Report)
 	newAgent.Repository = storage.NewAgentStorage()
 	newAgent.Client = delivery.NewRestyClient(config)
+	newAgent.Crypter = crypts.NewCrypterSHA256(config.Key)
 
 	return newAgent, nil
 }
@@ -83,7 +86,9 @@ func (agent *Agent) Report() {
 		log.Printf("agents.Report: reporting: %v", err)
 		return
 	}
+
 	for _, metric := range metrics {
+		agent.Crypter.AddHash(&metric)
 		agent.Client.PostJSON(&metric)
 	}
 	agent.UpdateCounter = 0
