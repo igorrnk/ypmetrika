@@ -39,9 +39,9 @@ func (c CrypterSHA256) CheckHash(metric *models.Metric) error {
 	var hashMetric string
 	switch metric.Type {
 	case models.GaugeType:
-		hashMetric = hash(fmt.Sprintf("%s:counter:%f", metric.Name, metric.Gauge), c.Key)
+		hashMetric = hash(fmt.Sprintf("%s:gauge:%f", metric.Name, metric.Gauge), c.Key)
 	case models.CounterType:
-		hashMetric = hash(fmt.Sprintf("%s:gauge:%d", metric.Name, metric.Counter), c.Key)
+		hashMetric = hash(fmt.Sprintf("%s:counter:%d", metric.Name, metric.Counter), c.Key)
 	}
 	if hashMetric != metric.Hash {
 		log.Println(hashMetric)
