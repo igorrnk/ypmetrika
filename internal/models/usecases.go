@@ -7,6 +7,7 @@ type ServerUsecase interface {
 
 	//GetAll returns slice of all metrics
 	GetAll() ([]Metric, error)
+	PingDB() error
 }
 
 type Client interface {

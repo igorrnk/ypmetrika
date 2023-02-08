@@ -15,5 +15,6 @@ var DefaultSC = ServerConfig{
 	StoreFileName: "/tmp/devops-metrics-db.json",
 	RestoreData:   true,
 	Key:           "",
+	DBConnect:     "postgres://username:password@localhost:5432/database_name",
 	NameHTMLFile:  "./web/metrics.html",
 }

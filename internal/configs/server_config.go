@@ -13,6 +13,7 @@ type ServerConfig struct {
 	StoreFileName string        `env:"STORE_FILE"`
 	RestoreData   bool          `env:"RESTORE"`
 	Key           string        `env:"KEY"`
+	DBConnect     string        `env:"DATABASE_DSN"`
 	NameHTMLFile  string
 }
 
@@ -21,7 +22,8 @@ func InitServerConfig() (*ServerConfig, error) {
 	storeFileName := flag.String("f", DefaultSC.StoreFileName, "The path of the data file")
 	restoreData := flag.Bool("r", DefaultSC.RestoreData, "Restore from the data file")
 	storeInterval := flag.Duration("i", DefaultSC.StoreInterval, "The store interval")
-	key := flag.String("k", DefaultAC.Key, "The crypt key")
+	key := flag.String("k", DefaultSC.Key, "The crypt key")
+	dbConnect := flag.String("d", DefaultSC.DBConnect, "path to DB")
 	flag.Parse()
 	config := &ServerConfig{
 		AddressServer: *addressServer,
@@ -29,6 +31,7 @@ func InitServerConfig() (*ServerConfig, error) {
 		StoreFileName: *storeFileName,
 		RestoreData:   *restoreData,
 		Key:           *key,
+		DBConnect:     *dbConnect,
 		NameHTMLFile:  DefaultSC.NameHTMLFile,
 	}
 

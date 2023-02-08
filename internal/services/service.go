@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"github.com/go-chi/chi/v5"
 	"github.com/igorrnk/ypmetrika/internal/configs"
@@ -15,6 +16,8 @@ import (
 	"os"
 	"os/signal"
 	"sort"
+
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 type Service struct {
@@ -24,6 +27,7 @@ type Service struct {
 	router     chi.Router
 	context    context.Context
 	crypter    models.Crypter
+	db         *sql.DB
 }
 
 func NewService(ctx context.Context, config *configs.ServerConfig) (*Service, error) {
@@ -34,7 +38,13 @@ func NewService(ctx context.Context, config *configs.ServerConfig) (*Service, er
 		repository: storage.NewFileStorage(ctx, config),
 		crypter:    crypts.NewCrypterSHA256(config.Key),
 	}
+	var err error
+	newServer.db, err = sql.Open("pgx", config.DBConnect)
+	if err != nil {
+		return nil, err
+	}
 	newServer.router = chi.NewRouter()
+
 	//newServer.Router.Use(middleware.Logger)
 
 	//newServer.router.Use(middleware.Compress(5, "text/html", "text/json"))
@@ -45,6 +55,7 @@ func NewService(ctx context.Context, config *configs.ServerConfig) (*Service, er
 	newServer.router.Post("/update/{typeMetric}/{nameMetric}/{valueMetric}", h.UpdateHandleFn)
 	newServer.router.Post("/update/", h.UpdateJSONHandleFn)
 	newServer.router.Post("/value/", h.ValueJSONHandleFn)
+	newServer.router.Get("/ping", h.PingHandleFn)
 
 	return newServer, nil
 }
@@ -123,4 +134,12 @@ func (server *Service) GetAll() ([]models.Metric, error) {
 	sort.SliceStable(metrics, func(i, j int) bool { return metrics[i].Name < metrics[j].Name })
 	sort.SliceStable(metrics, func(i, j int) bool { return metrics[i].Type < metrics[j].Type })
 	return metrics, nil
+}
+
+func (service *Service) PingDB() error {
+	err := service.db.PingContext(service.context)
+	if err != nil {
+		return err
+	}
+	return nil
 }
