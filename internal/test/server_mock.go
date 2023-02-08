@@ -30,3 +30,11 @@ func (mock *ServerMock) GetAll() ([]models.Metric, error) {
 	args := mock.Called()
 	return args.Get(0).([]models.Metric), nil
 }
+
+func (mock *ServerMock) PingDB() error {
+	args := mock.Called()
+	return args.Error(0)
+}
+
+func (mock *ServerMock) Close() {
+}

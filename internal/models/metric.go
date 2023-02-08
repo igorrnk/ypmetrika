@@ -70,7 +70,7 @@ func (metric *Metric) Value() string {
 	return s
 }
 
-type MetricType int
+type MetricType int8
 
 func (d MetricType) String() string {
 	return [...]string{"gauge", "counter"}[d]
@@ -81,7 +81,7 @@ const (
 	CounterType
 )
 
-type SourceType int
+type SourceType int8
 
 const (
 	RuntimeSource SourceType = iota

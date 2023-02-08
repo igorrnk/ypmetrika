@@ -15,5 +15,7 @@ var DefaultSC = ServerConfig{
 	StoreFileName: "/tmp/devops-metrics-db.json",
 	RestoreData:   true,
 	Key:           "",
+	DBConnect:     "",
+	DBDriverName:  "pgx",
 	NameHTMLFile:  "./web/metrics.html",
 }
