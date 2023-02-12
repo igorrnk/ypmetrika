@@ -33,12 +33,5 @@ func (h Handler) UpdatesJSONFn(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Handler.UpdateJSONHandleFn: Server UpdateValue Metric error: %v\n", err)
 		return
 	}
-
-	w.Header().Add("Content-Type", "application/json")
-	data, err := json.Marshal(metrics)
-	if err != nil {
-		log.Printf("Handler.UpdateJSONHandleFn: Marshal error: %v\n", err)
-		return
-	}
-	w.Write(data)
+	w.WriteHeader(http.StatusOK)
 }

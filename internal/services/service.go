@@ -135,7 +135,7 @@ func (service *Service) Updates(metrics []*models.Metric) error {
 	for _, metric := range metrics {
 		err := service.Update(metric)
 		if err != nil {
-
+			log.Println(err)
 		}
 	}
 	return nil
