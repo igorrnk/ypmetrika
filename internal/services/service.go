@@ -58,6 +58,7 @@ func NewService(ctx context.Context, config *configs.ServerConfig) (*Service, er
 	newServer.router.Post("/update/", h.UpdateJSONHandleFn)
 	newServer.router.Post("/value/", h.ValueJSONHandleFn)
 	newServer.router.Get("/ping", h.PingHandleFn)
+	newServer.router.Post("/updates/", h.UpdatesJSONFn)
 
 	return newServer, nil
 }
@@ -127,6 +128,16 @@ func (service *Service) Update(metric *models.Metric) error {
 		return err
 	}
 	//log.Printf("Metric %v (%v) has been updated %v.", metric.Name, metric.Type, metric.Value)
+	return nil
+}
+
+func (service *Service) Updates(metrics []*models.Metric) error {
+	for _, metric := range metrics {
+		err := service.Update(metric)
+		if err != nil {
+
+		}
+	}
 	return nil
 }
 

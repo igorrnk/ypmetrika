@@ -58,3 +58,27 @@ func (client RestyClient) PostJSON(metric *models.Metric) {
 		log.Printf("POST %v Status: no response\n", url)
 	}
 }
+
+func (client RestyClient) PostMetrics(metrics []models.Metric) {
+	url := fmt.Sprintf("%s/updates/",
+		client.AddressServer)
+	body, err := json.Marshal(metrics)
+	if err != nil {
+		log.Printf("client.PostJSON: error: %v\n", err)
+		return
+	}
+	resp, err := client.Client.R().
+		SetHeader("Content-Type", "application/json").
+		SetBody(body).
+		Post(url)
+	if err != nil {
+		log.Printf("client.PostJSON: error: %v\n", err)
+	}
+	log.Printf("client.PostJSON: URL = %v\n", url)
+	log.Printf("client.PostJSON: BODY = %v\n", string(body))
+	if resp != nil {
+		log.Printf("POST %v Status: %v\n", url, resp.Status())
+	} else {
+		log.Printf("POST %v Status: no response\n", url)
+	}
+}

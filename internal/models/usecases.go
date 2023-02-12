@@ -3,6 +3,7 @@ package models
 type ServerUsecase interface {
 	UpdateValue(metric *Metric) (*Metric, error)
 	Update(metric *Metric) error
+	Updates([]*Metric) error
 	Value(metric *Metric) (*Metric, error)
 	PingDB() error
 	//GetAll returns slice of all metrics
@@ -13,6 +14,7 @@ type ServerUsecase interface {
 type Client interface {
 	Post(*Metric)
 	PostJSON(*Metric)
+	PostMetrics([]Metric)
 }
 
 type Repository interface {

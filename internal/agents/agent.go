@@ -29,7 +29,7 @@ func NewAgent(config *configs.AgentConfig) (*Agent, error) {
 	newAgent := &Agent{
 		Config: config,
 	}
-	newAgent.Scheduler = NewScheduler(config, newAgent.Update, newAgent.Report)
+	newAgent.Scheduler = NewScheduler(config, newAgent.Update, newAgent.ReportBatch)
 	newAgent.Repository = storage.NewAgentStorage()
 	newAgent.Client = delivery.NewRestyClient(config)
 	newAgent.Crypter = crypts.NewCrypterSHA256(config.Key)
@@ -91,6 +91,21 @@ func (agent *Agent) Report() {
 		agent.Crypter.AddHash(&metric)
 		agent.Client.PostJSON(&metric)
 	}
+	agent.UpdateCounter = 0
+	log.Println("Metrics have been posted.")
+}
+
+func (agent *Agent) ReportBatch() {
+	metrics, err := agent.Repository.ReadAll()
+	if err != nil {
+		log.Printf("agents.Report: reporting: %v", err)
+		return
+	}
+
+	for i := range metrics {
+		agent.Crypter.AddHash(&metrics[i])
+	}
+	agent.Client.PostMetrics(metrics)
 	agent.UpdateCounter = 0
 	log.Println("Metrics have been posted.")
 }
