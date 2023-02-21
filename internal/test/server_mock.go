@@ -20,6 +20,11 @@ func (mock *ServerMock) Update(metric *models.Metric) error {
 	return args.Error(0)
 }
 
+func (mock *ServerMock) Updates(metrics []*models.Metric) error {
+	args := mock.Called(metrics)
+	return args.Error(0)
+}
+
 func (mock *ServerMock) Value(metric *models.Metric) (*models.Metric, error) {
 	log.Printf("Called ServerMock.Value(%v)\n", metric)
 	args := mock.Called(metric)
@@ -29,4 +34,12 @@ func (mock *ServerMock) Value(metric *models.Metric) (*models.Metric, error) {
 func (mock *ServerMock) GetAll() ([]models.Metric, error) {
 	args := mock.Called()
 	return args.Get(0).([]models.Metric), nil
+}
+
+func (mock *ServerMock) PingDB() error {
+	args := mock.Called()
+	return args.Error(0)
+}
+
+func (mock *ServerMock) Close() {
 }

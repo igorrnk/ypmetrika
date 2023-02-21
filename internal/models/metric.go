@@ -12,6 +12,7 @@ type Metric struct {
 	Gauge   float64
 	Counter int64
 	Source  SourceType
+	Hash    string
 }
 
 type JSONMetric struct {
@@ -19,6 +20,7 @@ type JSONMetric struct {
 	MType string   `json:"type"`            // параметр, принимающий значение gauge или counter
 	Delta *int64   `json:"delta,omitempty"` // значение метрики в случае передачи counter
 	Value *float64 `json:"value,omitempty"` // значение метрики в случае передачи gauge
+	Hash  string   `json:"hash,omitempty"`  // значение хеш-функции
 }
 
 func (metric *Metric) UnmarshalJSON(bytes []byte) error {
@@ -29,6 +31,7 @@ func (metric *Metric) UnmarshalJSON(bytes []byte) error {
 		return err
 	}
 	metric.Name = aliasValue.ID
+	metric.Hash = aliasValue.Hash
 	if metric.Type, err = ToMetricType(aliasValue.MType); err != nil {
 		return err
 	}
@@ -45,6 +48,7 @@ func (metric *Metric) MarshalJSON() ([]byte, error) {
 	aliasValue := JSONMetric{
 		ID:    metric.Name,
 		MType: metric.Type.String(),
+		Hash:  metric.Hash,
 	}
 	switch metric.Type {
 	case GaugeType:
@@ -66,7 +70,7 @@ func (metric *Metric) Value() string {
 	return s
 }
 
-type MetricType int
+type MetricType int8
 
 func (d MetricType) String() string {
 	return [...]string{"gauge", "counter"}[d]
@@ -77,7 +81,7 @@ const (
 	CounterType
 )
 
-type SourceType int
+type SourceType int8
 
 const (
 	RuntimeSource SourceType = iota

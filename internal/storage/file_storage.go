@@ -57,6 +57,10 @@ func (storage *FileStorage) Write(metric *models.Metric) error {
 	return nil
 }
 
+func (storage *FileStorage) Close() {
+	storage.saveData()
+}
+
 func (storage *FileStorage) tickSave() {
 	tickerSave := time.NewTicker(storage.storeInterval)
 	defer tickerSave.Stop()

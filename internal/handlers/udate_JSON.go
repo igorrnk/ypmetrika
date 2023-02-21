@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/igorrnk/ypmetrika/internal/models"
 	"io"
 	"log"
@@ -22,7 +23,13 @@ func (h Handler) UpdateJSONHandleFn(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Handler.UpdateJSONHandleFn: Unmarshal error: %v\n", err)
 		return
 	}
-	if metric, err = h.Server.UpdateValue(metric); err != nil {
+	metric, err = h.Server.UpdateValue(metric)
+	if errors.Is(err, models.ErrNotFound) {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		log.Println(err)
+		return
+	}
+	if err != nil {
 		log.Printf("Handler.UpdateJSONHandleFn: Server UpdateValue Metric error: %v\n", err)
 		return
 	}

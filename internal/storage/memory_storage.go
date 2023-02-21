@@ -44,3 +44,7 @@ func (storage *MemoryStorage) ReadAll() ([]models.Metric, error) {
 	}
 	return metrics, nil
 }
+
+func (storage *MemoryStorage) Close() {
+
+}

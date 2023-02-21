@@ -3,6 +3,7 @@ package agents
 import (
 	"context"
 	"github.com/igorrnk/ypmetrika/internal/configs"
+	"github.com/igorrnk/ypmetrika/internal/crypts"
 	"github.com/igorrnk/ypmetrika/internal/delivery"
 	"github.com/igorrnk/ypmetrika/internal/models"
 	"github.com/igorrnk/ypmetrika/internal/storage"
@@ -19,6 +20,7 @@ type Agent struct {
 	Scheduler     *Scheduler
 	Repository    models.Repository
 	Client        models.Client
+	Crypter       models.Crypter
 	UpdateCounter int64
 }
 
@@ -27,9 +29,10 @@ func NewAgent(config *configs.AgentConfig) (*Agent, error) {
 	newAgent := &Agent{
 		Config: config,
 	}
-	newAgent.Scheduler = NewScheduler(config, newAgent.Update, newAgent.Report)
+	newAgent.Scheduler = NewScheduler(config, newAgent.Update, newAgent.ReportBatch)
 	newAgent.Repository = storage.NewAgentStorage()
 	newAgent.Client = delivery.NewRestyClient(config)
+	newAgent.Crypter = crypts.NewCrypterSHA256(config.Key)
 
 	return newAgent, nil
 }
@@ -83,9 +86,26 @@ func (agent *Agent) Report() {
 		log.Printf("agents.Report: reporting: %v", err)
 		return
 	}
+
 	for _, metric := range metrics {
+		agent.Crypter.AddHash(&metric)
 		agent.Client.PostJSON(&metric)
 	}
+	agent.UpdateCounter = 0
+	log.Println("Metrics have been posted.")
+}
+
+func (agent *Agent) ReportBatch() {
+	metrics, err := agent.Repository.ReadAll()
+	if err != nil {
+		log.Printf("agents.Report: reporting: %v", err)
+		return
+	}
+
+	for i := range metrics {
+		agent.Crypter.AddHash(&metrics[i])
+	}
+	agent.Client.PostMetrics(metrics)
 	agent.UpdateCounter = 0
 	log.Println("Metrics have been posted.")
 }

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/go-chi/chi/v5"
 	"github.com/igorrnk/ypmetrika/internal/configs"
+	"github.com/igorrnk/ypmetrika/internal/crypts"
 	"github.com/igorrnk/ypmetrika/internal/handlers"
 	"github.com/igorrnk/ypmetrika/internal/middleware"
 	"github.com/igorrnk/ypmetrika/internal/models"
@@ -22,6 +23,7 @@ type Service struct {
 	repository models.Repository
 	router     chi.Router
 	context    context.Context
+	crypter    models.Crypter
 }
 
 func NewService(ctx context.Context, config *configs.ServerConfig) (*Service, error) {
@@ -30,8 +32,21 @@ func NewService(ctx context.Context, config *configs.ServerConfig) (*Service, er
 		config:     config,
 		context:    ctx,
 		repository: storage.NewFileStorage(ctx, config),
+		crypter:    crypts.NewCrypterSHA256(config.Key),
 	}
+	var err error
+
+	if config.DBConnect == "" {
+		newServer.repository = storage.NewFileStorage(ctx, config)
+	} else {
+		newServer.repository, err = storage.NewDBStorage(ctx, config)
+	}
+	if err != nil {
+		return nil, err
+	}
+
 	newServer.router = chi.NewRouter()
+
 	//newServer.Router.Use(middleware.Logger)
 
 	//newServer.router.Use(middleware.Compress(5, "text/html", "text/json"))
@@ -42,50 +57,62 @@ func NewService(ctx context.Context, config *configs.ServerConfig) (*Service, er
 	newServer.router.Post("/update/{typeMetric}/{nameMetric}/{valueMetric}", h.UpdateHandleFn)
 	newServer.router.Post("/update/", h.UpdateJSONHandleFn)
 	newServer.router.Post("/value/", h.ValueJSONHandleFn)
+	newServer.router.Get("/ping", h.PingHandleFn)
+	newServer.router.Post("/updates/", h.UpdatesJSONFn)
 
 	return newServer, nil
 }
 
-func (server *Service) Run() error {
+func (service *Service) Run() error {
 	log.Println("Service is running.")
-	server.httpServer = &http.Server{Addr: server.config.AddressServer,
-		Handler: server.router}
+	service.httpServer = &http.Server{Addr: service.config.AddressServer,
+		Handler: service.router}
 
 	idleConnsClosed := make(chan struct{})
 	go func() {
 		sigint := make(chan os.Signal, 1)
 		signal.Notify(sigint, os.Interrupt)
 		<-sigint
-		if err := server.httpServer.Shutdown(server.context); err != nil {
+		if err := service.httpServer.Shutdown(service.context); err != nil {
 			log.Printf("Service.Run: http.Service.Shutdown: %v", err)
 		}
 		close(idleConnsClosed)
 	}()
 
-	defer server.context.Done()
-	if err := server.httpServer.ListenAndServe(); err != http.ErrServerClosed {
+	defer service.context.Done()
+	if err := service.httpServer.ListenAndServe(); err != http.ErrServerClosed {
 		return err
 	}
 	<-idleConnsClosed
+	service.Close()
 	log.Println("Service has been stopped.")
 	return nil
 }
 
-func (server *Service) UpdateValue(metric *models.Metric) (*models.Metric, error) {
+func (service *Service) UpdateValue(metric *models.Metric) (*models.Metric, error) {
 	var err error
-	if err = server.Update(metric); err != nil {
+	if err = service.crypter.CheckHash(metric); err != nil {
 		return nil, err
 	}
-	metric, err = server.Value(metric)
+	if err = service.Update(metric); err != nil {
+		return nil, err
+	}
+	metric, err = service.Value(metric)
 	if err != nil {
 		return nil, errors.New("Service.UpdateValue: wrong metric")
 	}
 	return metric, nil
 }
 
-func (server *Service) Update(metric *models.Metric) error {
+func (service *Service) Update(metric *models.Metric) error {
+	oldMetric := &models.Metric{
+		Name: metric.Name,
+		Type: metric.Type,
+	}
+	var err error
 	if metric.Type == models.CounterType {
-		oldMetric, err := server.repository.Read(metric)
+		oldMetric, err = service.repository.Read(oldMetric)
+
 		if err != nil && !errors.Is(err, models.ErrNotFound) {
 			return err
 		}
@@ -95,7 +122,7 @@ func (server *Service) Update(metric *models.Metric) error {
 			metric.Counter += oldMetric.Counter
 		}
 	}
-	err := server.repository.Write(metric)
+	err = service.repository.Write(metric)
 	if err != nil {
 		log.Printf("Metric %v hasn't been updated.", metric.Name)
 		return err
@@ -104,16 +131,43 @@ func (server *Service) Update(metric *models.Metric) error {
 	return nil
 }
 
-func (server *Service) Value(metric *models.Metric) (*models.Metric, error) {
-	return server.repository.Read(metric)
+func (service *Service) Updates(metrics []*models.Metric) error {
+	for _, metric := range metrics {
+		err := service.Update(metric)
+		if err != nil {
+			log.Println(err)
+		}
+	}
+	return nil
 }
 
-func (server *Service) GetAll() ([]models.Metric, error) {
-	metrics, err := server.repository.ReadAll()
+func (service *Service) Value(metric *models.Metric) (*models.Metric, error) {
+	var err error
+	metric, err = service.repository.Read(metric)
+	if err != nil {
+		return nil, err
+	}
+	service.crypter.AddHash(metric)
+	return metric, err
+}
+
+func (service *Service) GetAll() ([]models.Metric, error) {
+	metrics, err := service.repository.ReadAll()
 	if err != nil {
 		return nil, err
 	}
 	sort.SliceStable(metrics, func(i, j int) bool { return metrics[i].Name < metrics[j].Name })
 	sort.SliceStable(metrics, func(i, j int) bool { return metrics[i].Type < metrics[j].Type })
 	return metrics, nil
+}
+
+func (service *Service) PingDB() error {
+	if s, ok := service.repository.(*storage.DBStorage); ok {
+		return s.Ping()
+	}
+	return models.ErrNotDB
+}
+
+func (service *Service) Close() {
+	service.repository.Close()
 }
