@@ -35,7 +35,7 @@ OuterLoop:
 		case <-tickerPoll.C:
 			scheduler.Updater()
 		case <-tickerReport.C:
-			scheduler.Reporter()
+			go scheduler.Reporter()
 		case <-ctx.Done():
 			break OuterLoop
 		}

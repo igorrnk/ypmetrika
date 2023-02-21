@@ -2,17 +2,21 @@ package agents
 
 import (
 	"context"
+	"fmt"
 	"github.com/igorrnk/ypmetrika/internal/configs"
 	"github.com/igorrnk/ypmetrika/internal/crypts"
 	"github.com/igorrnk/ypmetrika/internal/delivery"
 	"github.com/igorrnk/ypmetrika/internal/models"
 	"github.com/igorrnk/ypmetrika/internal/storage"
+	"github.com/shirou/gopsutil/v3/cpu"
+	"github.com/shirou/gopsutil/v3/mem"
 	"log"
 	"math/rand"
 	"os"
 	"os/signal"
 	"reflect"
 	"runtime"
+	"time"
 )
 
 type Agent struct {
@@ -52,6 +56,12 @@ func (agent *Agent) Run() error {
 }
 
 func (agent *Agent) Update() {
+	go agent.UpdateMain()
+	go agent.UpdateAdd()
+
+}
+
+func (agent *Agent) UpdateMain() {
 	stats := runtime.MemStats{}
 	runtime.ReadMemStats(&stats)
 	s := reflect.ValueOf(stats)
@@ -70,6 +80,8 @@ func (agent *Agent) Update() {
 			metric.Counter = agent.UpdateCounter
 		case models.RandomSource:
 			metric.Gauge = rand.Float64()
+		default:
+			continue
 		}
 		err := agent.Repository.Write(metric)
 		if err != nil {
@@ -78,6 +90,45 @@ func (agent *Agent) Update() {
 		//log.Printf("Metric %v (%v) = %v has been updated.", metric.Name, metric.Type, metric.Value)
 	}
 	log.Println("Metrics have been updated.")
+}
+
+func (agent *Agent) UpdateAdd() {
+	v, _ := mem.VirtualMemory()
+	n, _ := cpu.Counts(true)
+	p, _ := cpu.Percent(time.Second, true)
+	for _, metric := range models.AllMetrics {
+		switch metric.Source {
+		case models.GopsutilSource:
+			if metric.Name == "TotalMemory" {
+				metric.Gauge = float64(v.Total)
+			}
+			if metric.Name == "FreeMemory" {
+				metric.Gauge = float64(v.Free)
+			}
+			if metric.Name == "CPUutilization" {
+				for i := 0; i < n; i++ {
+					metric1 := &models.Metric{
+						Name:  metric.Name + fmt.Sprint(i+1),
+						Type:  models.GaugeType,
+						Gauge: p[i],
+					}
+					err := agent.Repository.Write(metric1)
+					if err != nil {
+						log.Println(err)
+					}
+				}
+				continue
+			}
+		default:
+			continue
+		}
+		err := agent.Repository.Write(metric)
+		if err != nil {
+			log.Println(err)
+		}
+		//log.Printf("Metric %v (%v) = %v has been updated.", metric.Name, metric.Type, metric.Value)
+	}
+
 }
 
 func (agent *Agent) Report() {

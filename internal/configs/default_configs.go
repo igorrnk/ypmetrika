@@ -7,6 +7,7 @@ var DefaultAC AgentConfig = AgentConfig{
 	PollInterval:   2 * time.Second,
 	ReportInterval: 10 * time.Second,
 	Key:            "",
+	Limit:          0,
 }
 
 var DefaultSC = ServerConfig{

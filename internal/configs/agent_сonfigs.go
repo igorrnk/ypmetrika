@@ -12,6 +12,7 @@ type AgentConfig struct {
 	ReportInterval time.Duration `env:"REPORT_INTERVAL"`
 	AddressServer  string        `env:"ADDRESS"`
 	Key            string        `env:"KEY"`
+	Limit          int           `env:"RATE_LIMIT"`
 }
 
 func InitAgentConfig() (*AgentConfig, error) {
@@ -19,12 +20,14 @@ func InitAgentConfig() (*AgentConfig, error) {
 	reportInterval := flag.Duration("r", DefaultAC.ReportInterval, "The report interval")
 	addressServer := flag.String("a", DefaultAC.AddressServer, "The address of the server")
 	key := flag.String("k", DefaultAC.Key, "The crypt key")
+	limit := flag.Int("l", DefaultAC.Limit, "The rate limit")
 	flag.Parse()
 	agentConfig := &AgentConfig{
 		PollInterval:   *pollInterval,
 		ReportInterval: *reportInterval,
 		AddressServer:  *addressServer,
 		Key:            *key,
+		Limit:          *limit,
 	}
 	err := env.Parse(agentConfig)
 	if err != nil {

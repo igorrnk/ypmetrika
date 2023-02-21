@@ -32,5 +32,8 @@ var (
 		{"TotalAlloc", GaugeType, 0, 0, RuntimeSource, ""},
 		{"PollCount", CounterType, 0, 0, CounterSource, ""},
 		{"RandomValue", GaugeType, 0, 0, RandomSource, ""},
+		{"TotalMemory", GaugeType, 0, 0, GopsutilSource, ""},
+		{"FreeMemory", GaugeType, 0, 0, GopsutilSource, ""},
+		{"CPUutilization", GaugeType, 0, 0, GopsutilSource, ""},
 	}
 )
