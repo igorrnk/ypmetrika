@@ -153,7 +153,6 @@ func (agent *Agent) UpdateAdd() {
 		}
 		//log.Printf("Metric %v (%v) = %v has been updated.", metric.Name, metric.Type, metric.Value)
 	}
-
 }
 
 func (agent *Agent) Report() {
