@@ -84,23 +84,27 @@ func (agent *Agent) UpdateMain() {
 	//agent.UpdateCounter++
 	atomic.AddInt64(&agent.UpdateCounter, 1)
 	for _, metric := range models.AllMetrics {
+		m := &models.Metric{
+			Name: metric.Name,
+			Type: metric.Type,
+		}
 		switch metric.Source {
 		case models.RuntimeSource:
 			field := s.FieldByName(metric.Name)
 			switch field.Kind() {
 			case reflect.Uint64, reflect.Uint32:
-				metric.Gauge = float64(field.Uint())
+				m.Gauge = float64(field.Uint())
 			case reflect.Float64:
-				metric.Gauge = field.Float()
+				m.Gauge = field.Float()
 			}
 		case models.CounterSource:
-			metric.Counter = agent.UpdateCounter
+			m.Counter = agent.UpdateCounter
 		case models.RandomSource:
-			metric.Gauge = rand.Float64()
+			m.Gauge = rand.Float64()
 		default:
 			continue
 		}
-		err := agent.Repository.Write(&metric)
+		err := agent.Repository.Write(m)
 		if err != nil {
 			log.Println(err)
 		}
@@ -114,22 +118,26 @@ func (agent *Agent) UpdateAdd() {
 	n, _ := cpu.Counts(true)
 	p, _ := cpu.Percent(time.Second, true)
 	for _, metric := range models.AllMetrics {
+		m := &models.Metric{
+			Name: metric.Name,
+			Type: metric.Type,
+		}
 		switch metric.Source {
 		case models.GopsutilSource:
 			if metric.Name == "TotalMemory" {
-				metric.Gauge = float64(v.Total)
+				m.Gauge = float64(v.Total)
 			}
 			if metric.Name == "FreeMemory" {
-				metric.Gauge = float64(v.Free)
+				m.Gauge = float64(v.Free)
 			}
 			if metric.Name == "CPUutilization" {
 				for i := 0; i < n; i++ {
-					metric1 := &models.Metric{
+					m1 := &models.Metric{
 						Name:  metric.Name + fmt.Sprint(i+1),
 						Type:  models.GaugeType,
 						Gauge: p[i],
 					}
-					err := agent.Repository.Write(metric1)
+					err := agent.Repository.Write(m1)
 					if err != nil {
 						log.Println(err)
 					}
@@ -139,7 +147,7 @@ func (agent *Agent) UpdateAdd() {
 		default:
 			continue
 		}
-		err := agent.Repository.Write(&metric)
+		err := agent.Repository.Write(m)
 		if err != nil {
 			log.Println(err)
 		}
