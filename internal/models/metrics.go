@@ -1,7 +1,7 @@
 package models
 
 var (
-	AllMetrics = [...]*Metric{
+	AllMetrics = [...]Metric{
 		{"Alloc", GaugeType, 0, 0, RuntimeSource, ""},
 		{"BuckHashSys", GaugeType, 0, 0, RuntimeSource, ""},
 		{"Frees", GaugeType, 0, 0, RuntimeSource, ""},

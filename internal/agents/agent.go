@@ -16,6 +16,7 @@ import (
 	"os/signal"
 	"reflect"
 	"runtime"
+	"sync/atomic"
 	"time"
 )
 
@@ -26,6 +27,11 @@ type Agent struct {
 	Client        models.Client
 	Crypter       models.Crypter
 	UpdateCounter int64
+	jobCh         chan Job
+}
+
+type Job struct {
+	Metrics []models.Metric
 }
 
 func NewAgent(config *configs.AgentConfig) (*Agent, error) {
@@ -44,6 +50,15 @@ func NewAgent(config *configs.AgentConfig) (*Agent, error) {
 func (agent *Agent) Run() error {
 	log.Println("Agent is running.")
 
+	agent.jobCh = make(chan Job)
+	for i := 0; i < agent.Config.Limit; i++ {
+		go func() {
+			for job := range agent.jobCh {
+				agent.Client.PostMetrics(job.Metrics)
+			}
+		}()
+	}
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	go agent.Scheduler.Tick(ctx)
@@ -51,6 +66,7 @@ func (agent *Agent) Run() error {
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
 	<-stop
+	close(agent.jobCh)
 	log.Println("Agent has been stopped.")
 	return nil
 }
@@ -65,7 +81,8 @@ func (agent *Agent) UpdateMain() {
 	stats := runtime.MemStats{}
 	runtime.ReadMemStats(&stats)
 	s := reflect.ValueOf(stats)
-	agent.UpdateCounter++
+	//agent.UpdateCounter++
+	atomic.AddInt64(&agent.UpdateCounter, 1)
 	for _, metric := range models.AllMetrics {
 		switch metric.Source {
 		case models.RuntimeSource:
@@ -83,7 +100,7 @@ func (agent *Agent) UpdateMain() {
 		default:
 			continue
 		}
-		err := agent.Repository.Write(metric)
+		err := agent.Repository.Write(&metric)
 		if err != nil {
 			log.Println(err)
 		}
@@ -122,7 +139,7 @@ func (agent *Agent) UpdateAdd() {
 		default:
 			continue
 		}
-		err := agent.Repository.Write(metric)
+		err := agent.Repository.Write(&metric)
 		if err != nil {
 			log.Println(err)
 		}
@@ -156,7 +173,11 @@ func (agent *Agent) ReportBatch() {
 	for i := range metrics {
 		agent.Crypter.AddHash(&metrics[i])
 	}
-	agent.Client.PostMetrics(metrics)
+	//agent.Client.PostMetrics(metrics)
+	job := Job{
+		Metrics: metrics,
+	}
+	agent.jobCh <- job
 	agent.UpdateCounter = 0
 	log.Println("Metrics have been posted.")
 }
