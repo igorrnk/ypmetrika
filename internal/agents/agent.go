@@ -2,6 +2,7 @@ package agents
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/igorrnk/ypmetrika/internal/configs"
 	"github.com/igorrnk/ypmetrika/internal/crypts"
@@ -149,6 +150,9 @@ func (agent *Agent) Report() {
 	for _, metric := range metrics {
 		agent.Crypter.AddHash(&metric)
 		err = agent.Client.PostJSON(&metric)
+		if errors.Is(err, models.ErrNotReport) {
+			log.Printf("agents.Report: reporting: %v", err)
+		}
 	}
 	agent.UpdateCounter = 0
 	log.Println("Metrics have been posted.")
@@ -160,13 +164,14 @@ func (agent *Agent) ReportBatch() {
 		log.Printf("agents.Report: reporting: %v", err)
 		return
 	}
-
 	for i := range metrics {
 		agent.Crypter.AddHash(&metrics[i])
 	}
 	//agent.Client.PostMetrics(metrics)
 	err = agent.Client.PostMetrics(metrics)
-
+	if errors.Is(err, models.ErrNotReport) {
+		log.Printf("agents.Report: reporting: %v", err)
+	}
 	agent.UpdateCounter = 0
 	log.Println("Metrics have been posted.")
 }
