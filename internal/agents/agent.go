@@ -27,11 +27,6 @@ type Agent struct {
 	Client        models.Client
 	Crypter       models.Crypter
 	UpdateCounter int64
-	jobCh         chan Job
-}
-
-type Job struct {
-	Metrics []models.Metric
 }
 
 func NewAgent(config *configs.AgentConfig) (*Agent, error) {
@@ -50,15 +45,6 @@ func NewAgent(config *configs.AgentConfig) (*Agent, error) {
 func (agent *Agent) Run() error {
 	log.Println("Agent is running.")
 
-	agent.jobCh = make(chan Job)
-	for i := 0; i < agent.Config.Limit; i++ {
-		go func() {
-			for job := range agent.jobCh {
-				agent.Client.PostMetrics(job.Metrics)
-			}
-		}()
-	}
-
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	go agent.Scheduler.Tick(ctx)
@@ -66,7 +52,6 @@ func (agent *Agent) Run() error {
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
 	<-stop
-	close(agent.jobCh)
 	log.Println("Agent has been stopped.")
 	return nil
 }
@@ -122,8 +107,7 @@ func (agent *Agent) UpdateAdd() {
 			Name: metric.Name,
 			Type: metric.Type,
 		}
-		switch metric.Source {
-		case models.GopsutilSource:
+		if metric.Source == models.GopsutilSource {
 			if metric.Name == "TotalMemory" {
 				m.Gauge = float64(v.Total)
 			}
@@ -144,7 +128,7 @@ func (agent *Agent) UpdateAdd() {
 				}
 				continue
 			}
-		default:
+		} else {
 			continue
 		}
 		err := agent.Repository.Write(m)
@@ -164,7 +148,7 @@ func (agent *Agent) Report() {
 
 	for _, metric := range metrics {
 		agent.Crypter.AddHash(&metric)
-		agent.Client.PostJSON(&metric)
+		err = agent.Client.PostJSON(&metric)
 	}
 	agent.UpdateCounter = 0
 	log.Println("Metrics have been posted.")
@@ -181,10 +165,8 @@ func (agent *Agent) ReportBatch() {
 		agent.Crypter.AddHash(&metrics[i])
 	}
 	//agent.Client.PostMetrics(metrics)
-	job := Job{
-		Metrics: metrics,
-	}
-	agent.jobCh <- job
+	err = agent.Client.PostMetrics(metrics)
+
 	agent.UpdateCounter = 0
 	log.Println("Metrics have been posted.")
 }
