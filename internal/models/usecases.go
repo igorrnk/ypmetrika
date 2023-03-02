@@ -15,6 +15,7 @@ type Client interface {
 	Post(*Metric) error
 	PostJSON(*Metric) error
 	PostMetrics([]Metric) error
+	Close()
 }
 
 type Repository interface {

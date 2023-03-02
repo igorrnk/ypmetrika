@@ -20,9 +20,14 @@ func NewRestyClient(config *configs.AgentConfig) *RestyClient {
 	client := &RestyClient{
 		Client:        resty.New(),
 		AddressServer: config.AddressServer,
+		jobCh:         make(chan *Job),
 	}
-	client.jobCh = make(chan *Job)
-	for i := 0; i < config.Limit; i++ {
+	client.runWorkers(config.Limit)
+	return client
+}
+
+func (client *RestyClient) runWorkers(count int) {
+	for i := 0; i < count; i++ {
 		go func() {
 			for job := range client.jobCh {
 				resp, err := func(r *resty.Request, url string) (*resty.Response, error) {
@@ -32,7 +37,6 @@ func NewRestyClient(config *configs.AgentConfig) *RestyClient {
 			}
 		}()
 	}
-	return client
 }
 
 func (client *RestyClient) Close() {

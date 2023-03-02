@@ -19,5 +19,6 @@ func NewJob(r *resty.Request, url string) *Job {
 
 func (job *Job) Result() (*resty.Response, error) {
 	result := <-job.ResultCh
+	close(job.ResultCh)
 	return result.Response, result.Err
 }

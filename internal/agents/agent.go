@@ -53,6 +53,7 @@ func (agent *Agent) Run() error {
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
 	<-stop
+	agent.Client.Close()
 	log.Println("Agent has been stopped.")
 	return nil
 }
