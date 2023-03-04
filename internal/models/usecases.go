@@ -12,9 +12,10 @@ type ServerUsecase interface {
 }
 
 type Client interface {
-	Post(*Metric)
-	PostJSON(*Metric)
-	PostMetrics([]Metric)
+	Post(*Metric) error
+	PostJSON(*Metric) error
+	PostMetrics([]Metric) error
+	Close()
 }
 
 type Repository interface {

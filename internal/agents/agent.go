@@ -2,17 +2,23 @@ package agents
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"github.com/igorrnk/ypmetrika/internal/configs"
 	"github.com/igorrnk/ypmetrika/internal/crypts"
 	"github.com/igorrnk/ypmetrika/internal/delivery"
 	"github.com/igorrnk/ypmetrika/internal/models"
 	"github.com/igorrnk/ypmetrika/internal/storage"
+	"github.com/shirou/gopsutil/v3/cpu"
+	"github.com/shirou/gopsutil/v3/mem"
 	"log"
 	"math/rand"
 	"os"
 	"os/signal"
 	"reflect"
 	"runtime"
+	"sync/atomic"
+	"time"
 )
 
 type Agent struct {
@@ -47,37 +53,92 @@ func (agent *Agent) Run() error {
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
 	<-stop
+	agent.Client.Close()
 	log.Println("Agent has been stopped.")
 	return nil
 }
 
 func (agent *Agent) Update() {
+	go agent.UpdateMain()
+	go agent.UpdateAdd()
+
+}
+
+func (agent *Agent) UpdateMain() {
 	stats := runtime.MemStats{}
 	runtime.ReadMemStats(&stats)
 	s := reflect.ValueOf(stats)
-	agent.UpdateCounter++
+	//agent.UpdateCounter++
+	atomic.AddInt64(&agent.UpdateCounter, 1)
 	for _, metric := range models.AllMetrics {
+		m := &models.Metric{
+			Name: metric.Name,
+			Type: metric.Type,
+		}
 		switch metric.Source {
 		case models.RuntimeSource:
 			field := s.FieldByName(metric.Name)
 			switch field.Kind() {
 			case reflect.Uint64, reflect.Uint32:
-				metric.Gauge = float64(field.Uint())
+				m.Gauge = float64(field.Uint())
 			case reflect.Float64:
-				metric.Gauge = field.Float()
+				m.Gauge = field.Float()
 			}
 		case models.CounterSource:
-			metric.Counter = agent.UpdateCounter
+			m.Counter = agent.UpdateCounter
 		case models.RandomSource:
-			metric.Gauge = rand.Float64()
+			m.Gauge = rand.Float64()
+		default:
+			continue
 		}
-		err := agent.Repository.Write(metric)
+		err := agent.Repository.Write(m)
 		if err != nil {
 			log.Println(err)
 		}
 		//log.Printf("Metric %v (%v) = %v has been updated.", metric.Name, metric.Type, metric.Value)
 	}
 	log.Println("Metrics have been updated.")
+}
+
+func (agent *Agent) UpdateAdd() {
+	v, _ := mem.VirtualMemory()
+	n, _ := cpu.Counts(true)
+	p, _ := cpu.Percent(time.Second, true)
+	for _, metric := range models.AllMetrics {
+		m := &models.Metric{
+			Name: metric.Name,
+			Type: metric.Type,
+		}
+		if metric.Source == models.GopsutilSource {
+			if metric.Name == "TotalMemory" {
+				m.Gauge = float64(v.Total)
+			}
+			if metric.Name == "FreeMemory" {
+				m.Gauge = float64(v.Free)
+			}
+			if metric.Name == "CPUutilization" {
+				for i := 0; i < n; i++ {
+					m1 := &models.Metric{
+						Name:  metric.Name + fmt.Sprint(i+1),
+						Type:  models.GaugeType,
+						Gauge: p[i],
+					}
+					err := agent.Repository.Write(m1)
+					if err != nil {
+						log.Println(err)
+					}
+				}
+				continue
+			}
+		} else {
+			continue
+		}
+		err := agent.Repository.Write(m)
+		if err != nil {
+			log.Println(err)
+		}
+		//log.Printf("Metric %v (%v) = %v has been updated.", metric.Name, metric.Type, metric.Value)
+	}
 }
 
 func (agent *Agent) Report() {
@@ -89,7 +150,10 @@ func (agent *Agent) Report() {
 
 	for _, metric := range metrics {
 		agent.Crypter.AddHash(&metric)
-		agent.Client.PostJSON(&metric)
+		err = agent.Client.PostJSON(&metric)
+		if errors.Is(err, models.ErrNotReport) {
+			log.Printf("agents.Report: reporting: %v", err)
+		}
 	}
 	agent.UpdateCounter = 0
 	log.Println("Metrics have been posted.")
@@ -101,11 +165,14 @@ func (agent *Agent) ReportBatch() {
 		log.Printf("agents.Report: reporting: %v", err)
 		return
 	}
-
 	for i := range metrics {
 		agent.Crypter.AddHash(&metrics[i])
 	}
-	agent.Client.PostMetrics(metrics)
+	//agent.Client.PostMetrics(metrics)
+	err = agent.Client.PostMetrics(metrics)
+	if errors.Is(err, models.ErrNotReport) {
+		log.Printf("agents.Report: reporting: %v", err)
+	}
 	agent.UpdateCounter = 0
 	log.Println("Metrics have been posted.")
 }

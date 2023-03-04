@@ -56,7 +56,9 @@ func TestRestyClient_PostJSON(t *testing.T) {
 			client := RestyClient{
 				Client:        tt.fields.Client,
 				AddressServer: tt.fields.AddressServer,
+				jobCh:         make(chan *Job),
 			}
+			client.runWorkers(1)
 			server := &http.Server{}
 			var got want
 			http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -68,8 +70,10 @@ func TestRestyClient_PostJSON(t *testing.T) {
 			})
 			go http.ListenAndServe(configs2.DefaultSC.AddressServer, nil)
 			time.Sleep(1 * time.Second)
+
 			client.PostJSON(tt.args.metric)
 			time.Sleep(1 * time.Second)
+
 			server.Shutdown(context.TODO())
 			assert.Equal(t, tt.want, got)
 		})

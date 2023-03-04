@@ -87,6 +87,7 @@ const (
 	RuntimeSource SourceType = iota
 	CounterSource
 	RandomSource
+	GopsutilSource
 )
 
 func ToMetricType(s string) (MetricType, error) {
